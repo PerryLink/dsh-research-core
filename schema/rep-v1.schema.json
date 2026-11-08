@@ -1,0 +1,1434 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/PerryLink/dsh-research-core/main/schema/rep-v1.schema.json",
+  "title": "Research Evidence Protocol v1 — ResearchRecord",
+  "description": "REP v1 interchange record: content-addressed snapshots, locatable anchors, evidence, claims with checks and verdicts, artifacts, a hash-chained audit log and a sealed report manifest. Structural contract only — cross-reference and verdict invariants are enforced by validateRep()/verifyRep() in @perrylink/dsh-research-core.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "recordId",
+    "createdAt",
+    "snapshots",
+    "evidence",
+    "claims"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "recordId": {
+      "$ref": "#/$defs/Id"
+    },
+    "createdAt": {
+      "$ref": "#/$defs/Timestamp"
+    },
+    "generator": {
+      "$ref": "#/$defs/Generator"
+    },
+    "snapshots": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Snapshot"
+      },
+      "maxItems": 100000
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Evidence"
+      },
+      "maxItems": 100000
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Claim"
+      },
+      "maxItems": 100000
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Artifact"
+      },
+      "maxItems": 100000
+    },
+    "audit": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/AuditEvent"
+      },
+      "maxItems": 100000
+    },
+    "manifest": {
+      "$ref": "#/$defs/ReportManifest"
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 4000
+      },
+      "maxItems": 100
+    }
+  },
+  "$defs": {
+    "Timestamp": {
+      "type": "string",
+      "description": "RFC 3339 timestamp with an explicit offset (a trailing Z is required for UTC).",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?(Z|[+-]\\d{2}:\\d{2})$"
+    },
+    "Sha256Hex": {
+      "type": "string",
+      "description": "Lowercase hex SHA-256 digest.",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "HashRef": {
+      "type": "string",
+      "description": "Self-describing content address: \"sha256:\" followed by the lowercase hex digest.",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "Id": {
+      "type": "string",
+      "description": "Stable identifier: starts alphanumeric, then alphanumerics and . _ : - (ASCII only).",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "Generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "command": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "dshVersion": {
+          "type": "string",
+          "maxLength": 100
+        }
+      }
+    },
+    "SourceMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "maxItems": 500
+        },
+        "year": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 2999
+        },
+        "containerTitle": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "volume": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "issue": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "pages": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "publisher": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "version": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "type": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "language": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "issn": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "license": {
+          "type": "string",
+          "maxLength": 200
+        }
+      }
+    },
+    "SourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "retrievedAt"
+      ],
+      "properties": {
+        "kind": {
+          "description": "Identifier family. The id pattern below is enforced per kind.",
+          "enum": [
+            "doi",
+            "pmid",
+            "pmcid",
+            "arxiv",
+            "isbn",
+            "url",
+            "file",
+            "dataset",
+            "other"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https?://",
+          "maxLength": 8192
+        },
+        "retrievedAt": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "metadata": {
+          "$ref": "#/$defs/SourceMetadata"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "doi"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "id": {
+                "pattern": "^10\\.[0-9]{4,9}/\\S+$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "pmid"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "id": {
+                "pattern": "^[0-9]{1,9}$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "pmcid"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "id": {
+                "pattern": "^PMC[0-9]{1,9}$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "arxiv"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "id": {
+                "pattern": "^([0-9]{4}\\.[0-9]{4,5}|[a-z-]+(\\.[A-Za-z]{2})?/[0-9]{7})(v[0-9]{1,3})?$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "isbn"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "id": {
+                "pattern": "^[0-9Xx-]{10,17}$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "url"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "url"
+            ]
+          }
+        }
+      ]
+    },
+    "Snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "snapshotId",
+        "mediaType",
+        "bytes",
+        "path",
+        "capturedAt",
+        "sourceRef"
+      ],
+      "properties": {
+        "snapshotId": {
+          "$ref": "#/$defs/HashRef"
+        },
+        "mediaType": {
+          "enum": [
+            "application/pdf",
+            "text/html",
+            "text/x-latex",
+            "text/plain",
+            "text/markdown",
+            "text/csv",
+            "application/json",
+            "application/x-ndjson",
+            "application/x-bibtex",
+            "application/xml",
+            "text/xml",
+            "image/png",
+            "image/jpeg",
+            "image/tiff",
+            "application/octet-stream"
+          ]
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 104857600
+        },
+        "path": {
+          "description": "Content-addressed store path; MUST equal \"objects/<sha256 hex of snapshotId>\".",
+          "type": "string",
+          "pattern": "^objects/[a-f0-9]{64}$"
+        },
+        "capturedAt": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "sourceRef": {
+          "$ref": "#/$defs/SourceRef"
+        },
+        "encoding": {
+          "enum": [
+            "utf-8",
+            "binary"
+          ]
+        },
+        "integrity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "ok",
+                "tampered",
+                "missing"
+              ]
+            },
+            "checkedAt": {
+              "$ref": "#/$defs/Timestamp"
+            }
+          }
+        }
+      }
+    },
+    "Anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "snapshotId",
+        "kind",
+        "value"
+      ],
+      "properties": {
+        "anchorId": {
+          "$ref": "#/$defs/Id"
+        },
+        "snapshotId": {
+          "$ref": "#/$defs/HashRef"
+        },
+        "kind": {
+          "enum": [
+            "page",
+            "section",
+            "paragraph",
+            "char",
+            "table",
+            "figure",
+            "record"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "quote": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20000
+        },
+        "quoteHash": {
+          "$ref": "#/$defs/Sha256Hex"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100000
+        },
+        "charRange": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "start",
+            "end"
+          ],
+          "properties": {
+            "start": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "end": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "paragraph": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "section": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "bbox": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 200
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "page"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "page"
+            ],
+            "properties": {
+              "value": {
+                "pattern": "^p\\.[0-9]{1,6}$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "char"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "charRange"
+            ],
+            "properties": {
+              "value": {
+                "pattern": "^c\\.[0-9]+-[0-9]+$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "paragraph"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "paragraph"
+            ],
+            "properties": {
+              "value": {
+                "pattern": "^para\\.[0-9]+$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "table"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "ordinal"
+            ],
+            "properties": {
+              "value": {
+                "pattern": "^t\\.[0-9]+$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "figure"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "ordinal"
+            ],
+            "properties": {
+              "value": {
+                "pattern": "^f\\.[0-9]+$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "record"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "pattern": "^field:[A-Za-z0-9_.-]{1,200}$"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "plugin",
+        "version",
+        "method",
+        "retrievedAt"
+      ],
+      "properties": {
+        "plugin": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "retrievedAt": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "inputHash": {
+          "$ref": "#/$defs/Sha256Hex"
+        },
+        "toolRun": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "CheckResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "checkId",
+        "check",
+        "status",
+        "detail"
+      ],
+      "properties": {
+        "checkId": {
+          "$ref": "#/$defs/Id"
+        },
+        "check": {
+          "enum": [
+            "doi-exists",
+            "metadata-match",
+            "quote-span",
+            "number-match",
+            "retraction",
+            "version-match",
+            "duplicate",
+            "stat-consistency",
+            "artifact-match",
+            "evidence-present",
+            "source-status",
+            "other"
+          ]
+        },
+        "status": {
+          "enum": [
+            "pass",
+            "fail",
+            "warn",
+            "skipped"
+          ]
+        },
+        "code": {
+          "description": "Machine-readable reason. \"not_found\" means the source could not be located: it is NOT evidence of fabrication, and NOT evidence of cleanliness.",
+          "enum": [
+            "not_found",
+            "rate_limited",
+            "network_error",
+            "parse_failed",
+            "ambiguous_match",
+            "outside_tolerance",
+            "insufficient_evidence",
+            "not_applicable",
+            "unavailable",
+            "unsupported_media_type",
+            "integrity_mismatch"
+          ]
+        },
+        "severity": {
+          "enum": [
+            "info",
+            "warning",
+            "error"
+          ]
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "expected": {},
+        "actual": {},
+        "locator": {
+          "$ref": "#/$defs/Anchor"
+        },
+        "checkedAt": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "tool": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "version"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "code": {
+                "const": "not_found"
+              }
+            },
+            "required": [
+              "code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": "skipped"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidenceId",
+        "sourceRef",
+        "snapshotIds",
+        "anchors",
+        "provenance"
+      ],
+      "properties": {
+        "evidenceId": {
+          "$ref": "#/$defs/Id"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "sourceRef": {
+          "$ref": "#/$defs/SourceRef"
+        },
+        "snapshotIds": {
+          "description": "At least one immutable snapshot. Evidence without a snapshot is illegal by design.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/HashRef"
+          },
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true
+        },
+        "anchors": {
+          "description": "At least one locator into the bound snapshots.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Anchor"
+          },
+          "minItems": 1,
+          "maxItems": 500
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CheckResult"
+          },
+          "maxItems": 200
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "maxItems": 50
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 4000
+        }
+      }
+    },
+    "Claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claimId",
+        "text",
+        "type",
+        "evidenceRefs",
+        "checks"
+      ],
+      "properties": {
+        "claimId": {
+          "$ref": "#/$defs/Id"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20000
+        },
+        "type": {
+          "enum": [
+            "result",
+            "method",
+            "background",
+            "conclusion",
+            "number",
+            "quote",
+            "metadata",
+            "other"
+          ]
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Id"
+          },
+          "maxItems": 200,
+          "uniqueItems": true
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CheckResult"
+          },
+          "maxItems": 500
+        },
+        "verdict": {
+          "enum": [
+            "verified",
+            "unverified",
+            "insufficient",
+            "contradicted",
+            "disproven"
+          ]
+        },
+        "verdictAt": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "locator": {
+          "$ref": "#/$defs/Anchor"
+        },
+        "tolerance": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 4000
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "verdict"
+            ]
+          },
+          "then": {
+            "properties": {
+              "checks": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "verdict": {
+                "const": "verified"
+              }
+            },
+            "required": [
+              "verdict"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidenceRefs": {
+                "minItems": 1
+              },
+              "checks": {
+                "minItems": 1,
+                "contains": {
+                  "type": "object",
+                  "required": [
+                    "check",
+                    "status"
+                  ],
+                  "properties": {
+                    "check": {
+                      "enum": [
+                        "doi-exists",
+                        "metadata-match",
+                        "quote-span",
+                        "number-match",
+                        "stat-consistency",
+                        "artifact-match",
+                        "retraction",
+                        "version-match"
+                      ]
+                    },
+                    "status": {
+                      "const": "pass"
+                    }
+                  }
+                }
+              }
+            },
+            "not": {
+              "required": [
+                "checks"
+              ],
+              "properties": {
+                "checks": {
+                  "contains": {
+                    "type": "object",
+                    "required": [
+                      "status"
+                    ],
+                    "properties": {
+                      "status": {
+                        "const": "fail"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "verdict": {
+                "enum": [
+                  "contradicted",
+                  "disproven"
+                ]
+              }
+            },
+            "required": [
+              "verdict"
+            ]
+          },
+          "then": {
+            "properties": {
+              "checks": {
+                "contains": {
+                  "type": "object",
+                  "required": [
+                    "status"
+                  ],
+                  "properties": {
+                    "status": {
+                      "enum": [
+                        "fail",
+                        "warn"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "verdict": {
+                "const": "insufficient"
+              }
+            },
+            "required": [
+              "verdict"
+            ]
+          },
+          "then": {
+            "properties": {
+              "checks": {
+                "contains": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "code"
+                      ],
+                      "properties": {
+                        "code": {
+                          "enum": [
+                            "insufficient_evidence",
+                            "not_found",
+                            "ambiguous_match",
+                            "unavailable",
+                            "not_applicable"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "required": [
+                        "status"
+                      ],
+                      "properties": {
+                        "status": {
+                          "enum": [
+                            "skipped",
+                            "warn"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifactId",
+        "kind",
+        "hash"
+      ],
+      "properties": {
+        "artifactId": {
+          "$ref": "#/$defs/Id"
+        },
+        "kind": {
+          "enum": [
+            "code",
+            "env",
+            "data",
+            "seed",
+            "command",
+            "figure",
+            "table",
+            "notebook",
+            "config",
+            "other"
+          ]
+        },
+        "hash": {
+          "$ref": "#/$defs/HashRef"
+        },
+        "path": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "mediaType": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 104857600
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "producedBy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "plugin",
+            "version"
+          ],
+          "properties": {
+            "plugin": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          }
+        },
+        "createdAt": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "relatedEvidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Id"
+          },
+          "maxItems": 200,
+          "uniqueItems": true
+        }
+      }
+    },
+    "AuditEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "at",
+        "actor",
+        "type",
+        "payload",
+        "hash"
+      ],
+      "properties": {
+        "eventId": {
+          "$ref": "#/$defs/Id"
+        },
+        "at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "actor": {
+          "enum": [
+            "plugin",
+            "model",
+            "human",
+            "system"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$",
+          "maxLength": 120
+        },
+        "payload": {
+          "type": "object"
+        },
+        "prevHash": {
+          "$ref": "#/$defs/Sha256Hex"
+        },
+        "hash": {
+          "$ref": "#/$defs/Sha256Hex"
+        }
+      }
+    },
+    "ReportManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "manifestId",
+        "generatedAt",
+        "title",
+        "topic",
+        "generator",
+        "evidence",
+        "claims",
+        "summary"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "manifestId": {
+          "$ref": "#/$defs/Id"
+        },
+        "generatedAt": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "topic": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "generator": {
+          "$ref": "#/$defs/Generator"
+        },
+        "recordFile": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "evidence": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "evidenceId",
+              "snapshotIds",
+              "status"
+            ],
+            "properties": {
+              "evidenceId": {
+                "$ref": "#/$defs/Id"
+              },
+              "snapshotIds": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/HashRef"
+                },
+                "minItems": 1,
+                "maxItems": 32
+              },
+              "status": {
+                "enum": [
+                  "ok",
+                  "warn",
+                  "fail",
+                  "unchecked"
+                ]
+              }
+            }
+          }
+        },
+        "claims": {
+          "type": "array",
+          "maxItems": 100000,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "claimId",
+              "textHash",
+              "verdict",
+              "evidenceRefs"
+            ],
+            "properties": {
+              "claimId": {
+                "$ref": "#/$defs/Id"
+              },
+              "textHash": {
+                "$ref": "#/$defs/Sha256Hex"
+              },
+              "verdict": {
+                "enum": [
+                  "verified",
+                  "unverified",
+                  "insufficient",
+                  "contradicted",
+                  "disproven"
+                ]
+              },
+              "evidenceRefs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Id"
+                },
+                "maxItems": 200
+              }
+            }
+          }
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Artifact"
+          },
+          "maxItems": 100000
+        },
+        "summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "evidenceCount",
+            "claimCount",
+            "snapshotCount",
+            "verdictCounts",
+            "failedChecks",
+            "notFoundChecks"
+          ],
+          "properties": {
+            "evidenceCount": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "claimCount": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "snapshotCount": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "verdictCounts": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "verified",
+                "unverified",
+                "insufficient",
+                "contradicted",
+                "disproven"
+              ],
+              "properties": {
+                "verified": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "unverified": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "insufficient": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "contradicted": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "disproven": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            },
+            "failedChecks": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "notFoundChecks": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "maxItems": 100
+        },
+        "integrity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "algorithm",
+            "manifestHash"
+          ],
+          "properties": {
+            "algorithm": {
+              "const": "sha256"
+            },
+            "manifestHash": {
+              "$ref": "#/$defs/Sha256Hex"
+            },
+            "sealedAt": {
+              "$ref": "#/$defs/Timestamp"
+            }
+          }
+        }
+      }
+    }
+  }
+}

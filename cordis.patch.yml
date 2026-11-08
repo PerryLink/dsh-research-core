@@ -1,0 +1,24 @@
+# @perrylink/dsh-research-core bundle patch: mount the REP evidence service.
+#
+# Every key below is a Config field (Schemastery schema); invalid values fail
+# the profile load loudly. The plugin writes only inside the workspace (the
+# content-addressed store + sealed records), so it defaults to enabled.
+#
+# This package ships no model-facing tools on purpose: it is the shared
+# protocol + service layer the 18 research plugins mount and consume.
+- insert:
+    - id: dsh-research-core
+      name: '@perrylink/dsh-research-core'
+      config:
+        # Master switch. On by default; `false` mounts nothing at all.
+        enabled: true
+        # REP store root (objects/<sha256> + JSONL journals + records/),
+        # resolved against the harness working directory when relative.
+        root: .research-rep
+        # Hard cap on one snapshot's byte size (20 MiB).
+        maxSnapshotBytes: 20971520
+        # Hard cap on registered evidence items before the store must be sealed
+        # or pruned.
+        maxEvidence: 10000
+        # Hard cap on registered claims.
+        maxClaims: 10000

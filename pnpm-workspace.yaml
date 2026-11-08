@@ -1,0 +1,10 @@
+# Nearest-workspace root for this standalone package. pnpm runs installs with
+# dependency build scripts ignored by default (ERR_PNPM_IGNORED_BUILDS); the
+# only build needed here is esbuild (vitest's transformer).
+packages:
+  - .
+
+allowBuilds:
+  esbuild: true
+
+verifyDepsBeforeRun: false

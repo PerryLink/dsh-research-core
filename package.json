@@ -1,0 +1,86 @@
+{
+  "name": "@perrylink/dsh-research-core",
+  "version": "0.1.0",
+  "description": "REP v1 — the shared Research Evidence Protocol for DeepSeek Harness research plugins: JSON Schema + TypeScript types for sources, snapshots, anchors, evidence, claims, checks, artifacts, audit events and sealed report manifests, plus a zero-dependency content-addressed evidence store, canonical hashing, SARIF export and an independent verifier CLI. No retrieval, no checks — the protocol and the store only.",
+  "author": "dsh-research-core contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PerryLink/dsh-research-core.git"
+  },
+  "homepage": "https://github.com/PerryLink/dsh-research-core#readme",
+  "bugs": {
+    "url": "https://github.com/PerryLink/dsh-research-core/issues"
+  },
+  "private": false,
+  "type": "module",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "bin": {
+    "dsh-rep-verify": "./lib/bin.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./schema/rep-v1.schema.json": "./schema/rep-v1.schema.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "schema",
+    "src",
+    "cordis.patch.yml",
+    "CHANGELOG.md",
+    "README.md",
+    "README-zh.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "cordis",
+    "research",
+    "evidence-ledger",
+    "json-schema",
+    "provenance",
+    "reproducibility",
+    "sarif"
+  ],
+  "engines": {
+    "node": "^22.19.0 || >=24.9.0",
+    "dsh": ">=0.2.1-0 <0.3.0 || >=0.2.2-0 <0.3.0"
+  },
+  "packageManager": "pnpm@12.16.1",
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.5-alpha.1",
+    "@deepseek-ai/schemastery": "^3.18.5-alpha.1"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@deepseek-ai/cordis": "^4.1.0",
+    "@deepseek-ai/schemastery": "~3.19.0",
+    "@types/node": "^22.20.5",
+    "ajv": "^8.17.1",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "node -e \"require('node:fs').rmSync('lib',{recursive:true,force:true})\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "pack:check": "pnpm run build && pnpm pack",
+    "verify:package": "node scripts/verify-package.mjs"
+  },
+  "license": "Apache-2.0"
+}

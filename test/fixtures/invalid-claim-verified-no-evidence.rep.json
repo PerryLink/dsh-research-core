@@ -1,0 +1,421 @@
+{
+  "schemaVersion": 1,
+  "recordId": "rec-fixture-sealed",
+  "createdAt": "2026-01-15T10:00:00.000Z",
+  "generator": {
+    "name": "dsh-research-core fixture builder",
+    "version": "0.1.0"
+  },
+  "snapshots": [
+    {
+      "snapshotId": "sha256:d9ae3ff2a9cdbe4b12955d5f6744cb6f361b165e976eb62454a6d938992e54a6",
+      "mediaType": "text/plain",
+      "bytes": 424,
+      "path": "objects/d9ae3ff2a9cdbe4b12955d5f6744cb6f361b165e976eb62454a6d938992e54a6",
+      "capturedAt": "2026-01-15T10:00:00.000Z",
+      "sourceRef": {
+        "kind": "file",
+        "id": "fixtures/article.txt",
+        "retrievedAt": "2026-01-15T10:00:00.000Z",
+        "metadata": {
+          "title": "Statistical reporting in randomized trials (synthetic fixture)",
+          "year": 2024,
+          "language": "en"
+        }
+      },
+      "encoding": "utf-8"
+    }
+  ],
+  "evidence": [
+    {
+      "evidenceId": "ev-fixture-article",
+      "title": "Synthetic fixture article",
+      "sourceRef": {
+        "kind": "file",
+        "id": "fixtures/article.txt",
+        "retrievedAt": "2026-01-15T10:00:00.000Z",
+        "metadata": {
+          "title": "Statistical reporting in randomized trials (synthetic fixture)",
+          "year": 2024,
+          "language": "en"
+        }
+      },
+      "snapshotIds": [
+        "sha256:d9ae3ff2a9cdbe4b12955d5f6744cb6f361b165e976eb62454a6d938992e54a6"
+      ],
+      "anchors": [
+        {
+          "anchorId": "anc-article-quote",
+          "snapshotId": "sha256:d9ae3ff2a9cdbe4b12955d5f6744cb6f361b165e976eb62454a6d938992e54a6",
+          "kind": "char",
+          "value": "c.152-219",
+          "charRange": {
+            "start": 152,
+            "end": 219
+          },
+          "quote": "the treatment group improved (t(28) = 2.50, p = .018)",
+          "quoteHash": "7e627efd8462aad7629030141ae17fb60e85524439fb26990fbd808cecc838f4"
+        }
+      ],
+      "provenance": {
+        "plugin": "dsh-research-core",
+        "version": "0.1.0",
+        "method": "fixture build (text/plain snapshot of a synthetic article)",
+        "retrievedAt": "2026-01-15T10:00:00.000Z"
+      },
+      "checks": [
+        {
+          "checkId": "chk-fixture-source-status",
+          "check": "source-status",
+          "status": "pass",
+          "detail": "fixture snapshot bytes re-hash to the recorded address"
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "claimId": "cl-fixture-verified",
+      "text": "The trial reports t(28) = 2.50 with p = .018.",
+      "type": "result",
+      "evidenceRefs": [],
+      "checks": [
+        {
+          "checkId": "chk-fe6fff356cc4",
+          "check": "evidence-present",
+          "status": "pass",
+          "severity": "info",
+          "detail": "bound evidence: ev-fixture-article"
+        },
+        {
+          "checkId": "chk-001ebeabd077",
+          "check": "source-status",
+          "status": "pass",
+          "severity": "info",
+          "detail": "snapshot bytes of ev-fixture-article re-hash to the recorded address"
+        },
+        {
+          "checkId": "chk-baed1b9f753c",
+          "check": "quote-span",
+          "status": "pass",
+          "severity": "info",
+          "detail": "quote located verbatim at normalized offset 188",
+          "expected": "the treatment group improved (t(28) = 2.50, p = .018)",
+          "actual": {
+            "found": true,
+            "index": 188
+          },
+          "locator": {
+            "snapshotId": "sha256:d9ae3ff2a9cdbe4b12955d5f6744cb6f361b165e976eb62454a6d938992e54a6",
+            "kind": "char",
+            "value": "c.152-219",
+            "charRange": {
+              "start": 152,
+              "end": 219
+            },
+            "quote": "the treatment group improved (t(28) = 2.50, p = .018)"
+          }
+        },
+        {
+          "checkId": "chk-f5c1168c999e",
+          "check": "number-match",
+          "status": "pass",
+          "severity": "info",
+          "detail": "all 3 numeric literal(s) occur verbatim in the bound snapshots",
+          "expected": [
+            "28",
+            "2.50",
+            ".018"
+          ],
+          "actual": {
+            "missing": [],
+            "sourceTokens": 8
+          }
+        }
+      ],
+      "locator": {
+        "snapshotId": "sha256:d9ae3ff2a9cdbe4b12955d5f6744cb6f361b165e976eb62454a6d938992e54a6",
+        "kind": "char",
+        "value": "c.152-219",
+        "charRange": {
+          "start": 152,
+          "end": 219
+        },
+        "quote": "the treatment group improved (t(28) = 2.50, p = .018)"
+      },
+      "verdict": "verified",
+      "verdictAt": "2026-01-15T10:00:00.000Z"
+    },
+    {
+      "claimId": "cl-fixture-insufficient",
+      "text": "The standardized effect was d = 0.80.",
+      "type": "number",
+      "evidenceRefs": [
+        "ev-fixture-article"
+      ],
+      "checks": [
+        {
+          "checkId": "chk-0c9471ed2ba8",
+          "check": "evidence-present",
+          "status": "pass",
+          "severity": "info",
+          "detail": "bound evidence: ev-fixture-article"
+        },
+        {
+          "checkId": "chk-cd8db1c38c2a",
+          "check": "source-status",
+          "status": "pass",
+          "severity": "info",
+          "detail": "snapshot bytes of ev-fixture-article re-hash to the recorded address"
+        },
+        {
+          "checkId": "chk-23ee8f287276",
+          "check": "quote-span",
+          "status": "pass",
+          "severity": "info",
+          "detail": "quote located verbatim at normalized offset 243",
+          "expected": "with a standardized effect of d = 0.45",
+          "actual": {
+            "found": true,
+            "index": 243
+          },
+          "locator": {
+            "snapshotId": "sha256:d9ae3ff2a9cdbe4b12955d5f6744cb6f361b165e976eb62454a6d938992e54a6",
+            "kind": "char",
+            "value": "c.220-271",
+            "charRange": {
+              "start": 220,
+              "end": 271
+            },
+            "quote": "with a standardized effect of d = 0.45"
+          }
+        },
+        {
+          "checkId": "chk-32741d9eab0d",
+          "check": "number-match",
+          "status": "fail",
+          "severity": "error",
+          "detail": "1 of 1 numeric literal(s) do not occur in the bound snapshots",
+          "expected": [
+            "0.80"
+          ],
+          "actual": {
+            "missing": [
+              "0.80"
+            ],
+            "sourceTokens": 8
+          }
+        },
+        {
+          "checkId": "chk-528235ded795",
+          "check": "other",
+          "status": "skipped",
+          "code": "insufficient_evidence",
+          "severity": "warning",
+          "detail": "nothing checkable was found: bind evidence carrying a verbatim quote or a numeric literal the source actually contains"
+        }
+      ],
+      "locator": {
+        "snapshotId": "sha256:d9ae3ff2a9cdbe4b12955d5f6744cb6f361b165e976eb62454a6d938992e54a6",
+        "kind": "char",
+        "value": "c.220-271",
+        "charRange": {
+          "start": 220,
+          "end": 271
+        },
+        "quote": "with a standardized effect of d = 0.45"
+      },
+      "verdict": "insufficient",
+      "verdictAt": "2026-01-15T10:00:00.000Z"
+    },
+    {
+      "claimId": "cl-fixture-disproven",
+      "text": "The authors conclude that the effect is definitive.",
+      "type": "quote",
+      "evidenceRefs": [
+        "ev-fixture-article"
+      ],
+      "checks": [
+        {
+          "checkId": "chk-afacaf804cad",
+          "check": "evidence-present",
+          "status": "pass",
+          "severity": "info",
+          "detail": "bound evidence: ev-fixture-article"
+        },
+        {
+          "checkId": "chk-b3b83d2d186f",
+          "check": "source-status",
+          "status": "pass",
+          "severity": "info",
+          "detail": "snapshot bytes of ev-fixture-article re-hash to the recorded address"
+        },
+        {
+          "checkId": "chk-662cab4d1e3b",
+          "check": "quote-span",
+          "status": "fail",
+          "severity": "error",
+          "detail": "quote is not present verbatim in any bound snapshot (c.300-326)",
+          "expected": "the effect is definitive",
+          "actual": {
+            "found": false,
+            "index": -1
+          },
+          "locator": {
+            "snapshotId": "sha256:d9ae3ff2a9cdbe4b12955d5f6744cb6f361b165e976eb62454a6d938992e54a6",
+            "kind": "char",
+            "value": "c.300-326",
+            "charRange": {
+              "start": 300,
+              "end": 326
+            },
+            "quote": "the effect is definitive"
+          }
+        }
+      ],
+      "locator": {
+        "snapshotId": "sha256:d9ae3ff2a9cdbe4b12955d5f6744cb6f361b165e976eb62454a6d938992e54a6",
+        "kind": "char",
+        "value": "c.300-326",
+        "charRange": {
+          "start": 300,
+          "end": 326
+        },
+        "quote": "the effect is definitive"
+      },
+      "verdict": "disproven",
+      "verdictAt": "2026-01-15T10:00:00.000Z"
+    }
+  ],
+  "audit": [
+    {
+      "eventId": "evt-000001",
+      "at": "2026-01-15T10:00:00.000Z",
+      "actor": "plugin",
+      "type": "snapshot.captured",
+      "payload": {
+        "snapshotId": "sha256:d9ae3ff2a9cdbe4b12955d5f6744cb6f361b165e976eb62454a6d938992e54a6",
+        "bytes": 424
+      },
+      "hash": "337cea7e9c24e54cee42c31c134abc424a2a88ad90d0084d9f644521c523bbc6"
+    },
+    {
+      "eventId": "evt-000002",
+      "at": "2026-01-15T10:00:00.000Z",
+      "actor": "plugin",
+      "type": "evidence.registered",
+      "payload": {
+        "evidenceId": "ev-fixture-article"
+      },
+      "prevHash": "337cea7e9c24e54cee42c31c134abc424a2a88ad90d0084d9f644521c523bbc6",
+      "hash": "cc9c06c69e7f83282087ebd210a4a06ac4ce4ff9cabb36bbfe0d1949796af465"
+    },
+    {
+      "eventId": "evt-000003",
+      "at": "2026-01-15T10:00:00.000Z",
+      "actor": "plugin",
+      "type": "claim.registered",
+      "payload": {
+        "claimId": "cl-fixture-verified"
+      },
+      "prevHash": "cc9c06c69e7f83282087ebd210a4a06ac4ce4ff9cabb36bbfe0d1949796af465",
+      "hash": "b393e974c466e38851e483cdd86f8c844f699d3d784078f60bc001ea050a6e16"
+    },
+    {
+      "eventId": "evt-000004",
+      "at": "2026-01-15T10:00:00.000Z",
+      "actor": "plugin",
+      "type": "claim.verdict",
+      "payload": {
+        "claimId": "cl-fixture-verified",
+        "verdict": "verified"
+      },
+      "prevHash": "b393e974c466e38851e483cdd86f8c844f699d3d784078f60bc001ea050a6e16",
+      "hash": "ece1c27dbfbe919073aa0504cb0ec483aa3b6e4ec9102e833525dc02a6c4cfaa"
+    }
+  ],
+  "artifacts": [
+    {
+      "artifactId": "art-fixture-seed",
+      "kind": "seed",
+      "hash": "sha256:4c80c30d28ceee250bebd34843bf951333676b93d61ec8a77f42071e5e79897e",
+      "description": "Random seed 42 used by the synthetic reproduction",
+      "createdAt": "2026-01-15T10:00:00.000Z"
+    }
+  ],
+  "manifest": {
+    "schemaVersion": 1,
+    "manifestId": "man-3763871674b3",
+    "generatedAt": "2026-01-15T10:00:00.000Z",
+    "title": "Fixture sealed report",
+    "topic": "fixture-sealed",
+    "generator": {
+      "name": "dsh-research-core fixture builder",
+      "version": "0.1.0"
+    },
+    "recordFile": "rec-fixture-sealed.rep.json",
+    "evidence": [
+      {
+        "evidenceId": "ev-fixture-article",
+        "snapshotIds": [
+          "sha256:d9ae3ff2a9cdbe4b12955d5f6744cb6f361b165e976eb62454a6d938992e54a6"
+        ],
+        "status": "ok"
+      }
+    ],
+    "claims": [
+      {
+        "claimId": "cl-fixture-verified",
+        "textHash": "e781190efe99ba98d726f56d457c9a21821c38124159af4f642c0825841c1cf3",
+        "verdict": "verified",
+        "evidenceRefs": [
+          "ev-fixture-article"
+        ]
+      },
+      {
+        "claimId": "cl-fixture-insufficient",
+        "textHash": "186deece4b00f22c494fbd67b0ca9c79a18099a0efe2831bf86e6a9103c2c782",
+        "verdict": "insufficient",
+        "evidenceRefs": [
+          "ev-fixture-article"
+        ]
+      },
+      {
+        "claimId": "cl-fixture-disproven",
+        "textHash": "68494a1d5315b9211dfe1bf652313a1128f79cfb1665df368b7d11e9453d9c29",
+        "verdict": "disproven",
+        "evidenceRefs": [
+          "ev-fixture-article"
+        ]
+      }
+    ],
+    "artifacts": [
+      {
+        "artifactId": "art-fixture-seed",
+        "kind": "seed",
+        "hash": "sha256:4c80c30d28ceee250bebd34843bf951333676b93d61ec8a77f42071e5e79897e",
+        "description": "Random seed 42 used by the synthetic reproduction",
+        "createdAt": "2026-01-15T10:00:00.000Z"
+      }
+    ],
+    "summary": {
+      "evidenceCount": 1,
+      "claimCount": 3,
+      "snapshotCount": 1,
+      "verdictCounts": {
+        "verified": 1,
+        "unverified": 0,
+        "insufficient": 1,
+        "contradicted": 0,
+        "disproven": 1
+      },
+      "failedChecks": 2,
+      "notFoundChecks": 0
+    },
+    "integrity": {
+      "algorithm": "sha256",
+      "manifestHash": "9425dcf5b7d56691cab5eb0aa5dd6c269e4dd0983ff0485e522ccf8930018536",
+      "sealedAt": "2026-01-15T10:00:00.000Z"
+    }
+  }
+}

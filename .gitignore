@@ -1,0 +1,8 @@
+node_modules/
+lib/
+lib-test-types/
+coverage/
+*.tgz
+*.log
+.research-rep/
+.rep-test-*/

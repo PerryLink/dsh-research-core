@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "recordId": "rec-fixture-minimal",
+  "createdAt": "2026-01-15T10:00:00.000Z",
+  "generator": {
+    "name": "dsh-research-core fixture builder",
+    "version": "0.1.0"
+  },
+  "snapshots": [
+    {
+      "snapshotId": "sha256:d9ae3ff2a9cdbe4b12955d5f6744cb6f361b165e976eb62454a6d938992e54a6",
+      "mediaType": "text/plain",
+      "bytes": 424,
+      "path": "objects/d9ae3ff2a9cdbe4b12955d5f6744cb6f361b165e976eb62454a6d938992e54a6",
+      "capturedAt": "2026-01-15T10:00:00.000Z",
+      "sourceRef": {
+        "kind": "file",
+        "id": "fixtures/article.txt",
+        "retrievedAt": "2026-01-15T10:00:00.000Z",
+        "metadata": {
+          "title": "Statistical reporting in randomized trials (synthetic fixture)",
+          "year": 2024,
+          "language": "en"
+        }
+      },
+      "encoding": "utf-8"
+    }
+  ],
+  "evidence": [
+    {
+      "evidenceId": "ev-fixture-article",
+      "title": "Synthetic fixture article",
+      "sourceRef": {
+        "kind": "file",
+        "id": "fixtures/article.txt",
+        "retrievedAt": "2026-01-15T10:00:00.000Z",
+        "metadata": {
+          "title": "Statistical reporting in randomized trials (synthetic fixture)",
+          "year": 2024,
+          "language": "en"
+        }
+      },
+      "snapshotIds": [
+        "sha256:d9ae3ff2a9cdbe4b12955d5f6744cb6f361b165e976eb62454a6d938992e54a6"
+      ],
+      "anchors": [
+        {
+          "anchorId": "anc-article-quote",
+          "snapshotId": "sha256:d9ae3ff2a9cdbe4b12955d5f6744cb6f361b165e976eb62454a6d938992e54a6",
+          "kind": "char",
+          "value": "c.152-219",
+          "charRange": {
+            "start": 152,
+            "end": 219
+          },
+          "quote": "the treatment group improved (t(28) = 2.50, p = .018)",
+          "quoteHash": "7e627efd8462aad7629030141ae17fb60e85524439fb26990fbd808cecc838f4"
+        }
+      ],
+      "provenance": {
+        "plugin": "dsh-research-core",
+        "version": "0.1.0",
+        "method": "fixture build (text/plain snapshot of a synthetic article)",
+        "retrievedAt": "2026-01-15T10:00:00.000Z"
+      },
+      "checks": [
+        {
+          "checkId": "chk-fixture-source-status",
+          "check": "source-status",
+          "status": "pass",
+          "detail": "fixture snapshot bytes re-hash to the recorded address"
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "claimId": "cl-fixture-verified",
+      "text": "The trial reports t(28) = 2.50 with p = .018.",
+      "type": "result",
+      "evidenceRefs": [
+        "ev-fixture-article"
+      ],
+      "checks": [
+        {
+          "checkId": "chk-fe6fff356cc4",
+          "check": "evidence-present",
+          "status": "pass",
+          "severity": "info",
+          "detail": "bound evidence: ev-fixture-article"
+        },
+        {
+          "checkId": "chk-001ebeabd077",
+          "check": "source-status",
+          "status": "pass",
+          "severity": "info",
+          "detail": "snapshot bytes of ev-fixture-article re-hash to the recorded address"
+        },
+        {
+          "checkId": "chk-baed1b9f753c",
+          "check": "quote-span",
+          "status": "pass",
+          "severity": "info",
+          "detail": "quote located verbatim at normalized offset 188",
+          "expected": "the treatment group improved (t(28) = 2.50, p = .018)",
+          "actual": {
+            "found": true,
+            "index": 188
+          },
+          "locator": {
+            "snapshotId": "sha256:d9ae3ff2a9cdbe4b12955d5f6744cb6f361b165e976eb62454a6d938992e54a6",
+            "kind": "char",
+            "value": "c.152-219",
+            "charRange": {
+              "start": 152,
+              "end": 219
+            },
+            "quote": "the treatment group improved (t(28) = 2.50, p = .018)"
+          }
+        },
+        {
+          "checkId": "chk-f5c1168c999e",
+          "check": "number-match",
+          "status": "pass",
+          "severity": "info",
+          "detail": "all 3 numeric literal(s) occur verbatim in the bound snapshots",
+          "expected": [
+            "28",
+            "2.50",
+            ".018"
+          ],
+          "actual": {
+            "missing": [],
+            "sourceTokens": 8
+          }
+        }
+      ],
+      "locator": {
+        "snapshotId": "sha256:d9ae3ff2a9cdbe4b12955d5f6744cb6f361b165e976eb62454a6d938992e54a6",
+        "kind": "char",
+        "value": "c.152-219",
+        "charRange": {
+          "start": 152,
+          "end": 219
+        },
+        "quote": "the treatment group improved (t(28) = 2.50, p = .018)"
+      },
+      "verdict": "verified",
+      "verdictAt": "2026-01-15T10:00:00.000Z"
+    }
+  ]
+}

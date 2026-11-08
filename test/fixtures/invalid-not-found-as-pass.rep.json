@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "recordId": "rec-fixture-not-found",
+  "createdAt": "2026-01-15T10:00:00.000Z",
+  "generator": {
+    "name": "dsh-research-core fixture builder",
+    "version": "0.1.0"
+  },
+  "snapshots": [
+    {
+      "snapshotId": "sha256:48a53741249d9031c30e972afe671d5fad116fff1c354a12573de9edfd29746b",
+      "mediaType": "application/json",
+      "bytes": 53,
+      "path": "objects/48a53741249d9031c30e972afe671d5fad116fff1c354a12573de9edfd29746b",
+      "capturedAt": "2026-01-15T10:00:00.000Z",
+      "sourceRef": {
+        "kind": "doi",
+        "id": "10.9999/fixture.missing",
+        "retrievedAt": "2026-01-15T10:00:00.000Z",
+        "metadata": {
+          "title": "A citation Crossref does not know"
+        }
+      },
+      "encoding": "utf-8"
+    }
+  ],
+  "evidence": [
+    {
+      "evidenceId": "ev-fixture-not-found",
+      "title": "Crossref lookup that returned no record",
+      "sourceRef": {
+        "kind": "doi",
+        "id": "10.9999/fixture.missing",
+        "retrievedAt": "2026-01-15T10:00:00.000Z",
+        "metadata": {
+          "title": "A citation Crossref does not know"
+        }
+      },
+      "snapshotIds": [
+        "sha256:48a53741249d9031c30e972afe671d5fad116fff1c354a12573de9edfd29746b"
+      ],
+      "anchors": [
+        {
+          "snapshotId": "sha256:48a53741249d9031c30e972afe671d5fad116fff1c354a12573de9edfd29746b",
+          "kind": "record",
+          "value": "field:total-results"
+        }
+      ],
+      "provenance": {
+        "plugin": "dsh-research-core",
+        "version": "0.1.0",
+        "method": "fixture build (recorded empty Crossref response)",
+        "retrievedAt": "2026-01-15T10:00:00.000Z"
+      },
+      "checks": [
+        {
+          "checkId": "chk-fixture-doi-exists",
+          "check": "doi-exists",
+          "status": "pass",
+          "code": "not_found",
+          "severity": "info",
+          "detail": "Crossref returned no record for 10.9999/fixture.missing; not_found is not evidence of fabrication and not evidence of cleanliness"
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "claimId": "cl-fixture-not-found",
+      "text": "The cited work exists and reports the stated effect.",
+      "type": "metadata",
+      "evidenceRefs": [
+        "ev-fixture-not-found"
+      ],
+      "checks": [
+        {
+          "checkId": "chk-fixture-not-found-claim",
+          "check": "doi-exists",
+          "status": "skipped",
+          "code": "not_found",
+          "detail": "the DOI could not be located, so the claim cannot be decided"
+        }
+      ],
+      "verdict": "insufficient",
+      "verdictAt": "2026-01-15T10:00:00.000Z"
+    }
+  ],
+  "audit": [
+    {
+      "eventId": "evt-000001",
+      "at": "2026-01-15T10:00:00.000Z",
+      "actor": "plugin",
+      "type": "evidence.registered",
+      "payload": {
+        "evidenceId": "ev-fixture-not-found"
+      },
+      "hash": "19c5aa692f89d8b958db3eba67cc1b71f9f8087e55322c4b2e503e6cf97fbfb1"
+    }
+  ],
+  "manifest": {
+    "schemaVersion": 1,
+    "manifestId": "man-b2b64aca53c7",
+    "generatedAt": "2026-01-15T10:00:00.000Z",
+    "title": "Fixture not-found report",
+    "topic": "fixture-not-found",
+    "generator": {
+      "name": "dsh-research-core fixture builder",
+      "version": "0.1.0"
+    },
+    "recordFile": "rec-fixture-not-found.rep.json",
+    "evidence": [
+      {
+        "evidenceId": "ev-fixture-not-found",
+        "snapshotIds": [
+          "sha256:48a53741249d9031c30e972afe671d5fad116fff1c354a12573de9edfd29746b"
+        ],
+        "status": "unchecked"
+      }
+    ],
+    "claims": [
+      {
+        "claimId": "cl-fixture-not-found",
+        "textHash": "674c07684f4c095b21b63b35053b9a0dfb94ebf85d4a531785acf519eb3cb385",
+        "verdict": "insufficient",
+        "evidenceRefs": [
+          "ev-fixture-not-found"
+        ]
+      }
+    ],
+    "summary": {
+      "evidenceCount": 1,
+      "claimCount": 1,
+      "snapshotCount": 1,
+      "verdictCounts": {
+        "verified": 0,
+        "unverified": 0,
+        "insufficient": 1,
+        "contradicted": 0,
+        "disproven": 0
+      },
+      "failedChecks": 0,
+      "notFoundChecks": 2
+    },
+    "integrity": {
+      "algorithm": "sha256",
+      "manifestHash": "e1ba3e4c2955fd9e999de778991453bab7f217ae3f6945031f500a7b2cb5c190",
+      "sealedAt": "2026-01-15T10:00:00.000Z"
+    }
+  }
+}
