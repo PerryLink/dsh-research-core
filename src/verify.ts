@@ -3,7 +3,7 @@
  *
  * `validateRep` is pure: it cannot know whether a stored object still hashes to
  * its recorded address. `verifyRecord` reads every snapshot back, recomputes
- * the address, re-locates every quoted anchor, and re-checks the manifest seal.
+ * the address, re-locates every quoted evidence anchor, and re-checks the manifest seal.
  * A mismatch is a hard failure: the verifier never "repairs" a hash to make a
  * report pass.
  *
@@ -14,10 +14,15 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { verifyAuditChain } from './audit.ts'
 import { normalizeText } from './claim.ts'
-import { hashRefHex, sha256Hex } from './hash.ts'
+import { hashRefHex, isHashRef, sha256Hex } from './hash.ts'
 import { verifyManifestSeal } from './manifest.ts'
-import type { Evidence, HashRef, ResearchRecord, Snapshot, SnapshotMediaType } from './types.ts'
+import type { AuditEvent, Evidence, HashRef, ReportManifest, ResearchRecord, Snapshot, SnapshotMediaType } from './types.ts'
 import { repErrors, validateRep, type ValidationIssue } from './validate.ts'
+
+/** True for a plain non-array object. */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
 
 /** Something that can return the stored bytes of a snapshot. */
 export interface SnapshotReader {
@@ -138,47 +143,73 @@ async function snapshotTexts(
   reader: SnapshotReader,
 ): Promise<Map<string, string>> {
   const texts = new Map<string, string>()
-  for (const snapshot of record.snapshots) {
-    if (!isTextualMediaType(snapshot.mediaType)) continue
-    const bytes = await reader.read(snapshot.snapshotId)
+  for (const raw of Array.isArray(record.snapshots) ? record.snapshots : []) {
+    if (!isRecord(raw) || !isHashRef(raw['snapshotId']) || typeof raw['mediaType'] !== 'string') continue
+    const mediaType = raw['mediaType'] as SnapshotMediaType
+    if (!isTextualMediaType(mediaType)) continue
+    const bytes = await reader.read(raw['snapshotId'])
     if (bytes === undefined) continue
-    const text = decodeSnapshotText(bytes, snapshot.mediaType)
-    if (text !== undefined) texts.set(snapshot.snapshotId, text)
+    const text = decodeSnapshotText(bytes, mediaType)
+    if (text !== undefined) texts.set(raw['snapshotId'], text)
   }
   return texts
 }
 
+/** Whether a quote occurs verbatim (after normalization) in a decoded text. */
+function quoteIn(text: string | undefined, quote: string): boolean {
+  return text !== undefined && normalizeText(text).includes(normalizeText(quote))
+}
+
 /**
- * Re-hash every snapshot and re-locate every quoted anchor.
+ * Re-hash every snapshot and re-locate every quoted evidence anchor.
+ *
+ * The input is typed as `unknown` on purpose: this is the read boundary for
+ * untrusted `.rep.json` files, so malformed shapes become failed verification
+ * issues rather than exceptions.
  * @param record - a parsed REP v1 record.
  * @param options - byte source and scope.
  * @returns the verification report.
  */
-export async function verifyRecord(record: ResearchRecord, options: VerifyRecordOptions = {}): Promise<RecordVerification> {
+export async function verifyRecord(record: unknown, options: VerifyRecordOptions = {}): Promise<RecordVerification> {
   const issues: ValidationIssue[] = [...validateRep(record).issues]
   const reader = readerOf(options)
   const snapshots: SnapshotVerification[] = []
   const anchors: AnchorVerification[] = []
 
+  if (
+    !isRecord(record) ||
+    !Array.isArray(record['snapshots']) ||
+    !Array.isArray(record['evidence']) ||
+    !Array.isArray(record['claims'])
+  ) {
+    // validateRep already reported record.not_object / record.field_type; there
+    // is nothing addressable to re-hash or re-locate.
+    return { ok: false, snapshots, anchors, issues }
+  }
+  const doc = record as unknown as ResearchRecord
+
   if (reader !== undefined) {
-    for (const [index, snapshot] of record.snapshots.entries()) {
-      const bytes = await reader.read(snapshot.snapshotId)
+    for (const [index, raw] of doc.snapshots.entries()) {
+      if (!isRecord(raw) || !isHashRef(raw['snapshotId'])) continue
+      const snapshotId = raw['snapshotId']
+      const recordedBytes = typeof raw['bytes'] === 'number' ? raw['bytes'] : 0
+      const bytes = await reader.read(snapshotId)
       if (bytes === undefined) {
-        snapshots.push({ snapshotId: snapshot.snapshotId, status: 'missing', recordedBytes: snapshot.bytes })
+        snapshots.push({ snapshotId, status: 'missing', recordedBytes })
         issues.push({
           code: 'verify.snapshot_missing',
           path: `/snapshots/${index}`,
-          message: `stored object for ${snapshot.snapshotId} is missing`,
+          message: `stored object for ${snapshotId} is missing`,
           severity: 'error',
         })
         continue
       }
       const actual = sha256Hex(bytes)
-      const expected = hashRefHex(snapshot.snapshotId)
+      const expected = hashRefHex(snapshotId)
       const fact: SnapshotVerification = {
-        snapshotId: snapshot.snapshotId,
+        snapshotId,
         status: actual === expected ? 'ok' : 'tampered',
-        recordedBytes: snapshot.bytes,
+        recordedBytes,
         actualBytes: bytes.byteLength,
       }
       snapshots.push(fact)
@@ -186,44 +217,48 @@ export async function verifyRecord(record: ResearchRecord, options: VerifyRecord
         issues.push({
           code: 'verify.snapshot_hash_mismatch',
           path: `/snapshots/${index}`,
-          message: `snapshot ${snapshot.snapshotId} re-hashes to sha256:${actual} — the record must not be trusted`,
+          message: `snapshot ${snapshotId} re-hashes to sha256:${actual} — the record must not be trusted`,
           severity: 'error',
         })
       }
-      if (bytes.byteLength !== snapshot.bytes) {
+      if (typeof raw['bytes'] === 'number' && bytes.byteLength !== raw['bytes']) {
         issues.push({
           code: 'verify.snapshot_size_mismatch',
           path: `/snapshots/${index}`,
-          message: `snapshot ${snapshot.snapshotId} is ${bytes.byteLength} bytes, record says ${snapshot.bytes}`,
+          message: `snapshot ${snapshotId} is ${bytes.byteLength} bytes, record says ${String(raw['bytes'])}`,
           severity: 'error',
         })
       }
     }
   } else {
-    for (const snapshot of record.snapshots) {
-      snapshots.push({ snapshotId: snapshot.snapshotId, status: 'not_checked', recordedBytes: snapshot.bytes })
+    for (const raw of doc.snapshots) {
+      if (!isRecord(raw) || !isHashRef(raw['snapshotId'])) continue
+      snapshots.push({
+        snapshotId: raw['snapshotId'],
+        status: 'not_checked',
+        recordedBytes: typeof raw['bytes'] === 'number' ? raw['bytes'] : 0,
+      })
     }
   }
 
   if (options.verifyQuotes !== false && reader !== undefined) {
-    const texts = await snapshotTexts(record, reader)
-    for (const evidence of record.evidence) {
-      for (const anchor of evidence.anchors) {
-        if (anchor.quote === undefined || anchor.quote === '') continue
-        const text = texts.get(anchor.snapshotId)
-        const found = text !== undefined && normalizeText(text).includes(normalizeText(anchor.quote))
-        anchors.push({
-          evidenceId: evidence.evidenceId,
-          snapshotId: anchor.snapshotId,
-          value: anchor.value,
-          quote: anchor.quote,
-          found,
-        })
+    const texts = await snapshotTexts(doc, reader)
+    for (const [evidenceIndex, rawEvidence] of doc.evidence.entries()) {
+      if (!isRecord(rawEvidence) || !Array.isArray(rawEvidence['anchors'])) continue
+      const evidenceId = typeof rawEvidence['evidenceId'] === 'string' ? rawEvidence['evidenceId'] : `evidence[${evidenceIndex}]`
+      for (const rawAnchor of rawEvidence['anchors']) {
+        if (!isRecord(rawAnchor)) continue
+        const quote = rawAnchor['quote']
+        const snapshotId = rawAnchor['snapshotId']
+        if (typeof quote !== 'string' || quote === '' || !isHashRef(snapshotId)) continue
+        const value = typeof rawAnchor['value'] === 'string' ? rawAnchor['value'] : ''
+        const found = quoteIn(texts.get(snapshotId), quote)
+        anchors.push({ evidenceId, snapshotId, value, quote, found })
         if (!found) {
           issues.push({
             code: 'verify.quote_not_found',
-            path: `/evidence/${record.evidence.indexOf(evidence)}/anchors`,
-            message: `quote for anchor ${anchor.value} of ${evidence.evidenceId} is not present verbatim in ${anchor.snapshotId}`,
+            path: `/evidence/${evidenceIndex}/anchors`,
+            message: `quote for anchor ${value} of ${evidenceId} is not present verbatim in ${snapshotId}`,
             severity: 'error',
           })
         }
@@ -231,12 +266,20 @@ export async function verifyRecord(record: ResearchRecord, options: VerifyRecord
     }
   }
 
-  const manifestSeal: RecordVerification['manifestSeal'] =
-    record.manifest === undefined ? undefined : verifyManifestSeal(record.manifest)
+  let manifestSeal: RecordVerification['manifestSeal']
+  if (isRecord(doc.manifest)) {
+    try {
+      manifestSeal = verifyManifestSeal(doc.manifest as unknown as ReportManifest)
+    } catch {
+      // validateRep reports the uncomputable seal; keep the verification report
+      // honest instead of throwing on a hostile manifest.
+      manifestSeal = { ok: false, expected: '(uncomputable)' }
+    }
+  }
 
-  const audit = record.audit
-  if (audit !== undefined && audit.length > 0) {
-    for (const defect of verifyAuditChain(audit)) {
+  const audit = doc.audit
+  if (Array.isArray(audit) && audit.length > 0) {
+    for (const defect of verifyAuditChain(audit as unknown as AuditEvent[])) {
       if (defect.code === 'event.duplicate_id') continue
       issues.push({
         code: 'verify.audit_chain',
@@ -249,7 +292,7 @@ export async function verifyRecord(record: ResearchRecord, options: VerifyRecord
 
   return {
     ok: repErrors({ ok: false, issues }).length === 0,
-    ...(typeof record.recordId === 'string' ? { recordId: record.recordId } : {}),
+    ...(typeof doc.recordId === 'string' ? { recordId: doc.recordId } : {}),
     ...(manifestSeal === undefined ? {} : { manifestSeal }),
     snapshots,
     anchors,
@@ -288,7 +331,7 @@ export async function verifyRecordFile(
       ],
     }
   }
-  const result = await verifyRecord(parsed as ResearchRecord, options)
+  const result = await verifyRecord(parsed, options)
   return { ...result, fileHash }
 }
 

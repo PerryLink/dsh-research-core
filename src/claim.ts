@@ -333,6 +333,12 @@ export function evaluateClaim(
   return { checks, verdict }
 }
 
+/** Keep only object-shaped checks so malformed JSON is reported, not thrown on. */
+function objectChecks(value: unknown): CheckResult[] {
+  if (!Array.isArray(value)) return []
+  return value.filter((item): item is CheckResult => typeof item === 'object' && item !== null && !Array.isArray(item))
+}
+
 /**
  * Apply a claim's declared verdict/checks to the schema invariants before the
  * value is written. Returns the violated invariant messages (empty = valid).
@@ -343,22 +349,24 @@ export function claimInvariantViolations(claim: Claim): string[] {
   const violations: string[] = []
   const verdict = claim.verdict
   if (verdict === undefined) return violations
-  if (claim.checks.length === 0) violations.push('a claim with a verdict must carry at least one check')
+  const checks = objectChecks(claim.checks)
+  const evidenceRefs = Array.isArray(claim.evidenceRefs) ? claim.evidenceRefs : []
+  if (checks.length === 0) violations.push('a claim with a verdict must carry at least one check')
   if (verdict === 'verified') {
-    if (claim.evidenceRefs.length === 0) violations.push('a verified claim must bind at least one evidence item')
-    const passing = claim.checks.some(
+    if (evidenceRefs.length === 0) violations.push('a verified claim must bind at least one evidence item')
+    const passing = checks.some(
       check => check.status === 'pass' && (VERIFYING_CHECKS as readonly string[]).includes(check.check),
     )
     if (!passing) violations.push('a verified claim needs at least one passing verifying check')
-    if (claim.checks.some(check => check.status === 'fail')) {
+    if (checks.some(check => check.status === 'fail')) {
       violations.push('a verified claim must not carry a failing check')
     }
   }
-  if ((verdict === 'contradicted' || verdict === 'disproven') && !claim.checks.some(check => check.status === 'fail' || check.status === 'warn')) {
+  if ((verdict === 'contradicted' || verdict === 'disproven') && !checks.some(check => check.status === 'fail' || check.status === 'warn')) {
     violations.push(`a ${verdict} claim must carry a failing or warning check`)
   }
   if (verdict === 'insufficient') {
-    const explained = claim.checks.some(
+    const explained = checks.some(
       check =>
         check.status === 'skipped' ||
         check.status === 'warn' ||

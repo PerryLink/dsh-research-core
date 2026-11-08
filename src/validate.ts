@@ -13,14 +13,15 @@
  */
 
 import { verifyAuditChain } from './audit.ts'
+import { canonicalJson } from './canonical.ts'
 import { claimInvariantViolations } from './claim.ts'
 import { sha256Hex } from './hash.ts'
-import { evidenceStatusOf, manifestHashOf, summarizeRecord, verifyManifestSeal } from './manifest.ts'
-import type { Anchor, Artifact, AuditEvent, Claim, Evidence, ResearchRecord, Snapshot } from './types.ts'
+import { evidenceStatusOf, summarizeRecord, verifyManifestSeal } from './manifest.ts'
+import type { Anchor, Artifact, AuditEvent, Claim, Evidence, ReportManifest, ResearchRecord, Snapshot } from './types.ts'
 
 /** One invariant violation or warning. */
 export interface ValidationIssue {
-  /** Stable, machine-readable code (see README "Issue codes"). */
+  /** Stable, machine-readable code (see the `issues.error(...)` call sites). */
   readonly code: string
   /** JSON-pointer-ish location inside the record, e.g. `/evidence/2`. */
   readonly path: string
@@ -359,71 +360,135 @@ export function validateRep(value: unknown): RepValidationResult {
     if (!isRecord(manifestRaw)) {
       issues.error('manifest.shape', '/manifest', 'manifest must be an object')
     } else {
-      const manifest = manifestRaw as unknown as ResearchRecord['manifest']
-      if (manifest === undefined) {
-        issues.error('manifest.shape', '/manifest', 'manifest must be an object')
-      } else {
-        const recordWithoutManifest = {
-          schemaVersion: 1 as const,
-          recordId: String(value['recordId']),
-          createdAt: String(value['createdAt']),
-          snapshots: rawSnapshots as readonly Snapshot[],
-          evidence: rawEvidence as readonly Evidence[],
-          claims: rawClaims as readonly Claim[],
-          ...(rawArtifacts.length === 0 ? {} : { artifacts: rawArtifacts as readonly Artifact[] }),
+      const manifest = manifestRaw
+      const manifestEvidence = manifest['evidence']
+      const manifestClaims = manifest['claims']
+      if (!Array.isArray(manifestEvidence)) {
+        issues.error('manifest.shape', '/manifest/evidence', 'manifest.evidence must be an array')
+      }
+      if (!Array.isArray(manifestClaims)) {
+        issues.error('manifest.shape', '/manifest/claims', 'manifest.claims must be an array')
+      }
+      if (!isRecord(manifest['summary'])) {
+        issues.error('manifest.shape', '/manifest/summary', 'manifest.summary must be an object')
+      }
+      const recordWithoutManifest = {
+        schemaVersion: 1 as const,
+        recordId: String(value['recordId']),
+        createdAt: String(value['createdAt']),
+        snapshots: rawSnapshots as readonly Snapshot[],
+        evidence: rawEvidence as readonly Evidence[],
+        claims: rawClaims as readonly Claim[],
+        ...(rawArtifacts.length === 0 ? {} : { artifacts: rawArtifacts as readonly Artifact[] }),
+      }
+      const claimById = new Map<string, Claim>()
+      for (const claim of rawClaims) {
+        if (isRecord(claim) && typeof claim['claimId'] === 'string') claimById.set(claim['claimId'], claim as unknown as Claim)
+      }
+      const evidenceById = new Map<string, Evidence>()
+      for (const evidence of rawEvidence) {
+        if (isRecord(evidence) && typeof evidence['evidenceId'] === 'string') {
+          evidenceById.set(evidence['evidenceId'], evidence as unknown as Evidence)
         }
-        const claimById = new Map<string, Claim>()
-        for (const claim of recordWithoutManifest.claims) claimById.set(claim.claimId, claim)
-        const evidenceById = new Map<string, Evidence>()
-        for (const evidence of recordWithoutManifest.evidence) evidenceById.set(evidence.evidenceId, evidence)
+      }
 
-        for (const [index, entry] of manifest.evidence.entries()) {
-          const bound = evidenceById.get(entry.evidenceId)
-          if (bound === undefined) {
-            issues.error('manifest.evidence_unknown', `/manifest/evidence/${index}`, `unknown evidence ${entry.evidenceId}`)
+      if (Array.isArray(manifestEvidence)) {
+        for (const [index, entry] of manifestEvidence.entries()) {
+          if (!isRecord(entry)) {
+            issues.error('manifest.shape', `/manifest/evidence/${index}`, 'manifest evidence entry must be an object')
             continue
           }
-          if (evidenceStatusOf(bound) !== entry.status) {
+          const evidenceId = entry['evidenceId']
+          if (typeof evidenceId !== 'string') {
+            issues.error('manifest.shape', `/manifest/evidence/${index}`, 'manifest evidence entry needs a string evidenceId')
+            continue
+          }
+          const bound = evidenceById.get(evidenceId)
+          if (bound === undefined) {
+            issues.error('manifest.evidence_unknown', `/manifest/evidence/${index}`, `unknown evidence ${evidenceId}`)
+            continue
+          }
+          const derived = evidenceStatusOf(bound)
+          if (derived !== entry['status']) {
             issues.error(
               'manifest.evidence_status_mismatch',
               `/manifest/evidence/${index}`,
-              `manifest records status ${entry.status}, checks derive ${evidenceStatusOf(bound)}`,
+              `manifest records status ${String(entry['status'])}, checks derive ${derived}`,
             )
           }
         }
-        for (const [index, entry] of manifest.claims.entries()) {
-          const claim = claimById.get(entry.claimId)
-          if (claim === undefined) {
-            issues.error('manifest.claim_unknown', `/manifest/claims/${index}`, `unknown claim ${entry.claimId}`)
+      }
+
+      if (Array.isArray(manifestClaims)) {
+        for (const [index, entry] of manifestClaims.entries()) {
+          if (!isRecord(entry)) {
+            issues.error('manifest.shape', `/manifest/claims/${index}`, 'manifest claim entry must be an object')
             continue
           }
-          if (sha256Hex(claim.text) !== entry.textHash) {
+          const claimId = entry['claimId']
+          if (typeof claimId !== 'string') {
+            issues.error('manifest.shape', `/manifest/claims/${index}`, 'manifest claim entry needs a string claimId')
+            continue
+          }
+          const claim = claimById.get(claimId)
+          if (claim === undefined) {
+            issues.error('manifest.claim_unknown', `/manifest/claims/${index}`, `unknown claim ${claimId}`)
+            continue
+          }
+          if (typeof claim['text'] !== 'string') {
+            issues.error('manifest.shape', `/manifest/claims/${index}`, 'the claim has no text to hash')
+          } else if (sha256Hex(claim['text']) !== entry['textHash']) {
             issues.error('manifest.text_hash_mismatch', `/manifest/claims/${index}`, 'claim text hash does not match the record')
           }
-          if ((claim.verdict ?? 'unverified') !== entry.verdict) {
+          const claimVerdict = typeof claim['verdict'] === 'string' ? claim['verdict'] : 'unverified'
+          if (claimVerdict !== entry['verdict']) {
             issues.error(
               'manifest.verdict_mismatch',
               `/manifest/claims/${index}`,
-              `manifest verdict ${entry.verdict} does not match the claim verdict ${String(claim.verdict)}`,
+              `manifest verdict ${String(entry['verdict'])} does not match the claim verdict ${claimVerdict}`,
             )
           }
         }
-        const expectedSummary = summarizeRecord(recordWithoutManifest)
-        if (JSON.stringify(expectedSummary) !== JSON.stringify(manifest.summary)) {
+      }
+
+      let expectedSummary: ReturnType<typeof summarizeRecord> | undefined
+      try {
+        expectedSummary = summarizeRecord(recordWithoutManifest)
+      } catch (error) {
+        issues.error('manifest.summary_uncomputable', '/manifest/summary', `manifest counters cannot be recomputed: ${(error as Error).message}`)
+      }
+      if (expectedSummary !== undefined && isRecord(manifest['summary'])) {
+        let same = false
+        try {
+          // Key order is not significant: compare the canonical forms, the same
+          // form the seal hashes.
+          same = canonicalJson(expectedSummary) === canonicalJson(manifest['summary'])
+        } catch {
+          same = false
+        }
+        if (!same) {
           issues.error('manifest.summary_mismatch', '/manifest/summary', 'manifest counters do not match the record')
         }
-        const seal = verifyManifestSeal(manifest)
-        if (manifest.integrity === undefined) {
-          issues.error('manifest.missing_seal', '/manifest/integrity', 'a report manifest must be sealed')
-        } else if (!seal.ok) {
+      }
+
+      if (manifest['integrity'] === undefined) {
+        issues.error('manifest.missing_seal', '/manifest/integrity', 'a report manifest must be sealed')
+      } else {
+        try {
+          const seal = verifyManifestSeal(manifest as unknown as ReportManifest)
+          if (!seal.ok) {
+            issues.error(
+              'manifest.seal_mismatch',
+              '/manifest/integrity',
+              `seal mismatch: recorded ${String(seal.recorded)}, recomputed ${seal.expected}`,
+            )
+          }
+        } catch (error) {
           issues.error(
             'manifest.seal_mismatch',
             '/manifest/integrity',
-            `seal mismatch: recorded ${String(seal.recorded)}, recomputed ${seal.expected}`,
+            `seal cannot be recomputed from the supplied manifest: ${(error as Error).message}`,
           )
-        }
-        if (manifestHashOf(manifest) !== seal.expected) {
-          issues.error('manifest.seal_unstable', '/manifest', 'manifest hash is not stable across recomputation')
         }
       }
     }

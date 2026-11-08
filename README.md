@@ -166,7 +166,7 @@ This package registers **no model-facing tools** by design (the 18 plugins own t
 
 | Surface | Name | Notes |
 |---|---|---|
-| Service | `ctx.researchEvidence` | 15 methods: `capture`, `addEvidence`, `setEvidenceChecks`, `addClaim`, `setVerdict`, `verifyClaim`, `getSnapshot`, `getEvidence`, `getClaim`, `listSnapshots`, `listEvidence`, `listClaims`, `buildRecord`, `seal`, `verifyRecord`, plus `attachReport` / `importReportEvidence` / `mirrorToReport` |
+| Service | `ctx.researchEvidence` | 16 methods: `capture`, `addEvidence`, `setEvidenceChecks`, `addClaim`, `setVerdict`, `verifyClaim`, `getSnapshot`, `getEvidence`, `getClaim`, `listSnapshots`, `listEvidence`, `listClaims`, `summarize`, `buildRecord`, `seal`, `verifyRecord`, plus `attachReport` / `importReportEvidence` / `mirrorToReport` |
 | CLI | `dsh-rep-verify` | exit-code driven, `--json` / `--sarif` |
 | Schema | `./schema/rep-v1.schema.json` | JSON Schema 2020-12, `$id` published |
 | Events | `RESEARCH_EVENTS` | `research/evidence.captured`, `research/claim.verified`, `research/audit.finding`, `research/report.sealed` (names + payload types; emitting is the producing plugin's job) |
@@ -218,16 +218,17 @@ Every journal is append-only. A corrupt journal line fails loud with file and li
 ## Known limitations
 
 - **Record-level quote verification needs textual snapshots.** A PDF snapshot is stored and re-hashed, but its text is not extracted here; quote re-location for PDFs requires `dsh-doc-anchor` to also capture the extracted text as a `text/plain` snapshot.
+- **Record-level quote checks cover evidence anchors.** `verifyRecord`/`dsh-rep-verify` re-locate quotes on `Evidence.anchors`; a claim-level `locator.quote` is evaluated by `evaluateClaim`/`verifyClaim` because a `disproven` claim intentionally carries a quote that must be *absent*.
 - **`verifyClaim` is conservative.** A missing number yields `insufficient` (it might be computed), not `disproven`; only an absent verbatim quote is `disproven`. Semantic support is `dsh-claim-check`'s job (W2).
 - **No session-log event emission yet.** Event names/payloads are exported; emitting them requires a session seam and is left to the producing plugin.
 - **Single-writer assumption.** The store serializes writes with an in-process lock; two processes writing the same root concurrently are not coordinated.
-- **Schema shape vs invariants.** `validateRep` checks cross-references and invariants (and a defensive structural pre-pass); the JSON Schema is the authority on shape. CI checks both against the 20 golden fixtures.
+- **Schema shape vs invariants.** `validateRep` checks cross-references and invariants (and a defensive structural pre-pass); the JSON Schema is the authority on shape. The zero-dependency store enforces cross-references and invariants, not every JSON-Schema constraint (for example length bounds), so untrusted producers should validate against `schema/rep-v1.schema.json` at their boundary. CI checks both against the 20 golden fixtures.
 
 ## Evaluation
 
 There are **no precision/recall numbers for this package** and it does not claim any: it is protocol infrastructure, not a detector. What is measured:
 
-- **107 unit/integration tests** across 10 files (`pnpm test`), covering: canonical JSON determinism, SHA-256 vectors, claim evaluation (5 verdict paths), invariant validation, audit-chain tampering, manifest sealing, store durability, tamper detection, Cordis mount/dispose, the research-report bridge, and the CLI exit codes.
+- **115 unit/integration tests** across 11 files (`pnpm test`), covering: canonical JSON determinism, SHA-256 vectors, claim evaluation (5 verdict paths), invariant validation, audit-chain tampering, manifest sealing, store durability, tamper detection, Cordis mount/dispose, the research-report bridge, and the CLI exit codes.
 - **20 golden fixtures** (`test/fixtures/*.rep.json`), 3 valid + 17 single-cause invalid, regenerated deterministically by the real functions and gated for drift (`UPDATE_FIXTURES=1 pnpm test`).
 - **JSON Schema agreement**: the published schema accepts every valid fixture and rejects the structural invalid ones; semantic fixtures are marked `either` and covered by `validateRep`.
 

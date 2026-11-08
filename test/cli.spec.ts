@@ -75,6 +75,21 @@ describe('dsh-rep-verify', () => {
     expect(sink.err.join('')).toContain('not valid JSON')
   })
 
+  it('fails (exit 1) with a report when the JSON is not a record object', async () => {
+    for (const [name, body] of [
+      ['number.rep.json', '42\n'],
+      ['null.rep.json', 'null\n'],
+    ] as const) {
+      const file = path.join(root, name)
+      await writeFile(file, body, 'utf8')
+      const sink = io()
+      expect(await runCli([file], sink)).toBe(1)
+      expect(sink.out.join('')).toContain('record.not_object')
+      expect(sink.out.join('')).toContain('RESULT     FAILED')
+      expect(sink.err.join('')).toBe('')
+    }
+  })
+
   it('verifies a sealed record without objects, reporting hashes as not checked', async () => {
     const sink = io()
     expect(await runCli([fixture('valid-sealed.rep.json')], sink)).toBe(0)

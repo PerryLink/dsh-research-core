@@ -109,7 +109,7 @@ RESULT     verified
 
 | 表面 | 名称 | 说明 |
 |---|---|---|
-| 服务 | `ctx.researchEvidence` | 15 个方法：`capture`、`addEvidence`、`setEvidenceChecks`、`addClaim`、`setVerdict`、`verifyClaim`、`get*`/`list*`、`buildRecord`、`seal`、`verifyRecord`，外加 `attachReport` / `importReportEvidence` / `mirrorToReport` 桥 |
+| 服务 | `ctx.researchEvidence` | 16 个方法：`capture`、`addEvidence`、`setEvidenceChecks`、`addClaim`、`setVerdict`、`verifyClaim`、`get*`/`list*`、`summarize`、`buildRecord`、`seal`、`verifyRecord`，外加 `attachReport` / `importReportEvidence` / `mirrorToReport` 桥 |
 | CLI | `dsh-rep-verify` | 退出码驱动，`--json` / `--sarif` |
 | Schema | `./schema/rep-v1.schema.json` | JSON Schema 2020-12 |
 | 事件 | `RESEARCH_EVENTS` | `research/evidence.captured`、`research/claim.verified`、`research/audit.finding`、`research/report.sealed`（只冻结名称与 payload；发送由产出插件负责） |
@@ -143,16 +143,17 @@ RESULT     verified
 ## 已知限制
 
 - **记录级引文校验需要文本快照**：PDF 会被存下并重算哈希，但本包不抽文本；PDF 的引文回定位需要 `dsh-doc-anchor` 同时把抽取文本作为 `text/plain` 快照存下。
+- **记录级引文检查覆盖 Evidence 的 anchor。** `verifyRecord`/`dsh-rep-verify` 回定位 `Evidence.anchors` 上的引文；claim 的 `locator.quote` 由 `evaluateClaim`/`verifyClaim` 判断——`disproven` claim 本来就应携带一个“不存在于原文”的引文。
 - **`verifyClaim` 是保守的**：数字缺失 → `insufficient`（可能是计算值），只有“引文原文不存在”才 `disproven`。语义支持判断属于 `dsh-claim-check`（W2）。
 - **暂不写会话事件**：事件名与 payload 已导出，写会话需要 session seam，留给产出插件。
 - **单写者假设**：存储用进程内写锁；两个进程同时写同一 root 未协调。
-- **Schema 与不变量分层**：`validateRep` 校验交叉引用与不变量（外加防御性结构预检），JSON Schema 是形状权威；CI 用 20 个 golden fixture 双向对齐。
+- **Schema 与不变量分层**：`validateRep` 校验交叉引用与不变量（外加防御性结构预检），JSON Schema 是形状权威。零依赖存储只强制交叉引用与不变量，不覆盖每一条 JSON Schema 约束（例如长度上限）；不可信的生产方应在边界用 `schema/rep-v1.schema.json` 做校验。CI 用 20 个 golden fixture 双向对齐。
 
 ## 评测
 
 本包**没有也不声称** precision/recall —— 它是协议基础设施，不是检测器。已量测的是：
 
-- **107 个单元/集成测试**（10 个文件，`pnpm test`）：canonical JSON 确定性、SHA-256 向量、claim 五条 verdict 路径、不变量校验、审计链篡改、manifest 密封、存储持久化与篡改检测、Cordis 挂载/卸载、research-report 桥、CLI 退出码。
+- **115 个单元/集成测试**（11 个文件，`pnpm test`）：canonical JSON 确定性、SHA-256 向量、claim 五条 verdict 路径、不变量校验、审计链篡改、manifest 密封、存储持久化与篡改检测、Cordis 挂载/卸载、research-report 桥、CLI 退出码。
 - **20 个 golden fixture**（3 个合法 + 17 个单因失效），由真实函数确定性生成，并做漂移门禁（`UPDATE_FIXTURES=1 pnpm test`）。
 - **JSON Schema 对齐**：发布的 schema 接受全部合法 fixture、拒绝结构性失效 fixture；语义类 fixture 标 `either`，由 `validateRep` 覆盖。
 

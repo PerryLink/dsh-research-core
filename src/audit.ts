@@ -78,42 +78,59 @@ export interface AuditChainIssue {
 
 /**
  * Recompute every event hash and the link to its predecessor.
+ *
+ * Runtime data is treated defensively: a malformed event becomes a chain defect
+ * instead of an exception, because this function is used on untrusted records.
  * @param events - the chain in append order.
  * @returns every defect found (empty means the chain is intact).
  */
 export function verifyAuditChain(events: readonly AuditEvent[]): AuditChainIssue[] {
   const issues: AuditChainIssue[] = []
   const seen = new Set<string>()
-  let previous: AuditEvent | undefined
+  let previousHash: string | undefined
   for (const [index, event] of events.entries()) {
-    const expected = auditEventHash(event)
-    if (expected !== event.hash) {
+    if (typeof event !== 'object' || event === null || Array.isArray(event)) {
+      issues.push({ index, code: 'event.hash_mismatch', message: 'audit event must be an object' })
+      continue
+    }
+    const eventId = typeof event.eventId === 'string' ? event.eventId : `events[${index}]`
+    let expected: string | undefined
+    try {
+      expected = auditEventHash(event)
+    } catch (error) {
       issues.push({
         index,
         code: 'event.hash_mismatch',
-        message: `event ${event.eventId} hash mismatch: recorded ${event.hash}, recomputed ${expected}`,
+        message: `event ${eventId} hash cannot be recomputed: ${(error as Error).message}`,
       })
     }
-    if (seen.has(event.eventId)) {
-      issues.push({ index, code: 'event.duplicate_id', message: `duplicate audit event id ${event.eventId}` })
+    if (expected !== undefined && expected !== event.hash) {
+      issues.push({
+        index,
+        code: 'event.hash_mismatch',
+        message: `event ${eventId} hash mismatch: recorded ${String(event.hash)}, recomputed ${expected}`,
+      })
     }
-    seen.add(event.eventId)
-    if (previous === undefined) {
+    if (seen.has(eventId)) {
+      issues.push({ index, code: 'event.duplicate_id', message: `duplicate audit event id ${eventId}` })
+    }
+    seen.add(eventId)
+    if (previousHash === undefined) {
       if (event.prevHash !== undefined) {
         issues.push({
           index,
           code: 'event.unexpected_prev',
-          message: `first event ${event.eventId} must not carry prevHash`,
+          message: `first event ${eventId} must not carry prevHash`,
         })
       }
-    } else if (event.prevHash !== previous.hash) {
+    } else if (event.prevHash !== previousHash) {
       issues.push({
         index,
         code: 'event.prev_mismatch',
-        message: `event ${event.eventId} prevHash does not match the preceding event hash`,
+        message: `event ${eventId} prevHash does not match the preceding event hash`,
       })
     }
-    previous = event
+    previousHash = typeof event.hash === 'string' ? event.hash : undefined
   }
   return issues
 }

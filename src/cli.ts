@@ -108,15 +108,16 @@ export function parseArgs(argv: readonly string[]): CliArgs {
 export function renderHuman(
   file: string,
   fileHash: string,
-  record: ResearchRecord,
+  record: Partial<ResearchRecord> | undefined,
   verification: RecordVerification,
 ): string {
   const lines: string[] = []
-  lines.push(`record     ${record.recordId ?? '(unknown)'}`)
+  lines.push(`record     ${verification.recordId ?? record?.recordId ?? '(unknown)'}`)
   lines.push(`file       ${file}`)
   lines.push(`file sha256 ${fileHash}`)
-  if (record.manifest?.integrity !== undefined) {
-    lines.push(`manifest   ${record.manifest.integrity.manifestHash} (${record.manifest.integrity.algorithm})`)
+  const integrity = record?.manifest?.integrity
+  if (integrity !== undefined) {
+    lines.push(`manifest   ${integrity.manifestHash} (${integrity.algorithm})`)
   }
   if (verification.manifestSeal !== undefined) {
     lines.push(`seal       ${verification.manifestSeal.ok ? 'recomputed OK' : 'MISMATCH'}`)
@@ -178,9 +179,9 @@ export async function runCli(argv: readonly string[], io: CliIo = processIo): Pr
     return 2
   }
   const fileHash = sha256Hex(bytes)
-  let record: ResearchRecord
+  let record: unknown
   try {
-    record = JSON.parse(bytes.toString('utf8')) as ResearchRecord
+    record = JSON.parse(bytes.toString('utf8')) as unknown
   } catch (error) {
     io.stderr(`${file} is not valid JSON: ${(error as Error).message}\n`)
     return 2
@@ -198,7 +199,9 @@ export async function runCli(argv: readonly string[], io: CliIo = processIo): Pr
   } else if (args.json) {
     io.stdout(`${JSON.stringify({ file, fileHash, verification }, null, 2)}\n`)
   } else {
-    io.stdout(`${renderHuman(file, fileHash, record, verification)}\n`)
+    const view =
+      typeof record === 'object' && record !== null ? (record as Partial<ResearchRecord>) : undefined
+    io.stdout(`${renderHuman(file, fileHash, view, verification)}\n`)
   }
   return verification.ok ? 0 : 1
 }

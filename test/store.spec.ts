@@ -8,8 +8,10 @@
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
+import Ajv2020 from 'ajv/dist/2020.js'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { hashRefHex } from '../src/hash.ts'
+import { getRepSchema } from '../src/schema.ts'
 import { EvidenceStore, RepStoreError } from '../src/store.ts'
 import type { CheckResult, HashRef } from '../src/types.ts'
 import { validateRep } from '../src/validate.ts'
@@ -260,6 +262,16 @@ describe('sealing', () => {
     expect(verification.ok).toBe(false)
     expect(verification.issues.map(issue => issue.code)).toContain('verify.snapshot_hash_mismatch')
     expect(verification.manifestSeal?.ok).toBe(true) // the seal is intact; the bytes are not
+  })
+
+  it('produces a sealed record accepted by the published JSON Schema', async () => {
+    const store = makeStore()
+    const { claimId } = await seed(store)
+    await store.verifyClaim(claimId)
+    const sealed = await store.seal({ title: 'Schema report', topic: 'schema', generator: GENERATOR })
+    const ajv = new Ajv2020({ strict: false, allErrors: true })
+    const validate = ajv.compile(getRepSchema())
+    expect(validate(sealed.record), ajv.errorsText(validate.errors)).toBe(true)
   })
 
   it('counts state for status()', async () => {

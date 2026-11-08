@@ -6,6 +6,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- `validateRep` no longer throws on malformed manifests, non-canonicalizable
+  audit payloads or malformed verdict checks; it reports stable issue codes.
+- Manifest summary comparison is key-order independent (canonical JSON).
+- `verifyRecord` accepts `unknown` and returns a failed verification report for
+  non-object records; `dsh-rep-verify` exits `1` with `record.not_object`
+  instead of crashing, and handles `null` records.
+- Regression tests for the malformed-input and CLI paths; the suite is now 115
+  tests across 11 files (107 at the 0.1.0 tag).
+
 ## [0.1.0] - 2026-11-08
 
 First release: REP v1 is frozen. Any field change from here on requires

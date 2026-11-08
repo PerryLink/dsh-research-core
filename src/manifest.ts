@@ -28,6 +28,20 @@ import type {
 /** The five verdicts, in canonical order. */
 export const VERDICTS: readonly Verdict[] = ['verified', 'unverified', 'insufficient', 'contradicted', 'disproven']
 
+/** True for a plain object (runtime data may come from JSON, not TypeScript). */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+/**
+ * Keep only object-shaped checks. This module is also used by the defensive
+ * validator, which must report malformed input instead of throwing on it.
+ */
+function usableChecks(value: unknown): CheckResult[] {
+  if (!Array.isArray(value)) return []
+  return value.filter((item): item is CheckResult => isPlainObject(item))
+}
+
 /**
  * Derive the manifest status of one evidence item from its checks.
  *
@@ -37,7 +51,7 @@ export const VERDICTS: readonly Verdict[] = ['verified', 'unverified', 'insuffic
  * @returns its manifest status.
  */
 export function evidenceStatusOf(evidence: Evidence): ManifestEvidenceStatus {
-  const checks = evidence.checks ?? []
+  const checks = usableChecks(evidence?.checks)
   if (checks.length === 0) return 'unchecked'
   if (checks.some(check => check.status === 'fail')) return 'fail'
   if (checks.some(check => check.status === 'warn')) return 'warn'
@@ -49,8 +63,12 @@ export function evidenceStatusOf(evidence: Evidence): ManifestEvidenceStatus {
 /** Every check reachable from a record (evidence checks + claim checks). */
 function allChecks(record: Omit<ResearchRecord, 'manifest'>): CheckResult[] {
   const checks: CheckResult[] = []
-  for (const evidence of record.evidence) checks.push(...(evidence.checks ?? []))
-  for (const claim of record.claims) checks.push(...claim.checks)
+  for (const evidence of Array.isArray(record.evidence) ? record.evidence : []) {
+    checks.push(...usableChecks(evidence?.checks))
+  }
+  for (const claim of Array.isArray(record.claims) ? record.claims : []) {
+    checks.push(...usableChecks(claim?.checks))
+  }
   return checks
 }
 
@@ -67,14 +85,17 @@ export function summarizeRecord(record: Omit<ResearchRecord, 'manifest'>): Manif
     contradicted: 0,
     disproven: 0,
   }
-  for (const claim of record.claims) {
-    verdictCounts[claim.verdict ?? 'unverified'] += 1
+  const claims = Array.isArray(record.claims) ? record.claims : []
+  for (const claim of claims) {
+    const verdict = isPlainObject(claim) && typeof claim['verdict'] === 'string' ? claim['verdict'] : 'unverified'
+    if ((VERDICTS as readonly string[]).includes(verdict)) verdictCounts[verdict as Verdict] += 1
+    else verdictCounts.unverified += 1
   }
   const checks = allChecks(record)
   return {
-    evidenceCount: record.evidence.length,
-    claimCount: record.claims.length,
-    snapshotCount: record.snapshots.length,
+    evidenceCount: Array.isArray(record.evidence) ? record.evidence.length : 0,
+    claimCount: claims.length,
+    snapshotCount: Array.isArray(record.snapshots) ? record.snapshots.length : 0,
     verdictCounts,
     failedChecks: checks.filter(check => check.status === 'fail').length,
     notFoundChecks: checks.filter(check => check.code === 'not_found').length,
