@@ -39,7 +39,7 @@ plugin output ──► REP record (.rep.json) ──► dsh-rep-verify ──�
 
 | | |
 |---|---|
-| DeepSeek Harness | **`dsh-v0.2.1-rc.5`** (verified on this machine, 2026-11-08) — npm peer line `>=0.2.1-0 <0.3.0 \|\| >=0.2.2-0 <0.3.0` |
+| DeepSeek Harness | **`dsh-v0.2.2-rc.4`** (verified on this machine, 2026-11-18) — npm peer line `>=0.2.1-0 <0.3.0 \|\| >=0.2.2-0 <0.3.0` |
 | Node | `^22.19.0 \|\| >=24.9.0` (tested on `24.22.1`), ESM only |
 | Peers | `@deepseek-ai/cordis ^4.0.5-alpha.1`, `@deepseek-ai/schemastery ^3.18.5-alpha.1` |
 | Runtime dependencies | **zero** |
