@@ -36,6 +36,7 @@
     "README-zh.md",
     "LICENSE",
     "SECURITY.md",
+    "docs/assets/*",
     "THIRD_PARTY_NOTICES.md"
   ],
   "sideEffects": false,
