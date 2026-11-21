@@ -1,14 +1,23 @@
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dsh-research-core-hero-en-dark.webp">
+  <img src="docs/assets/dsh-research-core-hero-en-light.webp" width="100%" alt="dsh-research-core: the dsh-rep-verify report for the sealed REP v1 fixture — record rec-fixture-sealed, the manifest seal recomputed OK, 1 snapshot re-hashed 0 tampered, 1/1 quotes re-located verbatim, 0 issues and RESULT verified; below REP v1's nine entities and the sixteen ctx.researchEvidence methods, and a strip saying not_found is skipped, never a verdict">
+</picture>
+
 # @perrylink/dsh-research-core
 
 **REP v1 — the shared Research Evidence Protocol for the DSH research plugin family.**
 
 *One protocol, one store, one verifier. Every research plugin speaks the same evidence language, and anyone can recompute what it claims.*
 
+[简体中文](README-zh.md) · [Español](README-es.md) · [Português](README-pt.md) · [हिन्दी](README-hi.md)
+
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%5E22.19%20%7C%7C%20%3E%3D24.9-brightgreen.svg)]()
 [![DSH plugin](https://img.shields.io/badge/dsh--plugin-✅-green)](https://github.com/topics/dsh-plugin)
 
-English · [简体中文](README-zh.md)
+</div>
 
 ---
 
@@ -27,6 +36,14 @@ plugin output ──► REP record (.rep.json) ──► dsh-rep-verify ──�
                         ├── objects/<sha256>            (immutable bytes)
                         └── manifest seal               (sha256 of canonical JSON)
 ```
+
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dsh-research-core-flow-v5-dark.svg">
+  <img src="docs/assets/dsh-research-core-flow-v5-light.svg" width="100%" alt="dsh-research-core structure: bytes become a SHA-256 addressed snapshot, evidence binds sources, snapshots and anchors, a claim is evaluated into checks and a verdict, and a sealed manifest is then re-checked by the independent dsh-rep-verify CLI; the labels inside the diagram are the real entity, method and CLI names">
+</picture>
+
+*Structure: capture → bind → decide; a sealed manifest and the independent `dsh-rep-verify` report are the two outputs, and every hash in both is recomputable from bytes. The token labels inside the diagram are the real entity, method and CLI names, so the same picture serves all five languages.*
 
 ## What this is not
 
@@ -225,6 +242,11 @@ Every journal is append-only. A corrupt journal line fails loud with file and li
 - **Schema shape vs invariants.** `validateRep` checks cross-references and invariants (and a defensive structural pre-pass); the JSON Schema is the authority on shape. The zero-dependency store enforces cross-references and invariants, not every JSON-Schema constraint (for example length bounds), so untrusted producers should validate against `schema/rep-v1.schema.json` at their boundary. CI checks both against the 20 golden fixtures.
 
 ## Evaluation
+
+![dsh-research-core: a real dsh-rep-verify run — seal recomputed OK, 1 snapshot re-hashed, 1/1 quotes re-located, RESULT verified; then a record edited after sealing reports seal MISMATCH and RESULT FAILED](docs/assets/dsh-research-core-demo.gif)
+
+*Animated: the real `dsh-rep-verify` output on 2026-11-21 — first `test/fixtures/valid-sealed.rep.json` verified against an `objects/` directory built from its own snapshot (the seal is recomputed, the bytes re-hashed, the quoted anchor re-located); then `test/fixtures/invalid-manifest-seal.rep.json`, the same record with its title edited after sealing, which the verifier refuses. Exit codes: 0 verified, 1 failed, 2 usage/IO.*
+
 
 There are **no precision/recall numbers for this package** and it does not claim any: it is protocol infrastructure, not a detector. What is measured:
 

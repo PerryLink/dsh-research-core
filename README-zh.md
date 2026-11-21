@@ -1,13 +1,23 @@
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dsh-research-core-hero-zh-dark.webp">
+  <img src="docs/assets/dsh-research-core-hero-zh-light.webp" width="100%" alt="dsh-research-core 配图：REP v1 已密封 fixture 的 dsh-rep-verify 报告 —— 记录 rec-fixture-sealed，manifest 密封重算通过、1 个快照重算哈希 0 篡改、1/1 引用原文回定位一致、0 个问题，RESULT verified；下方是 REP v1 的九类实体与 ctx.researchEvidence 的十六个方法，底部写着 not_found 只记 skipped、绝不当结论">
+</picture>
+
 # @perrylink/dsh-research-core
 
 **REP v1 —— DSH 科研插件家族的共享证据协议。**
 
 *一套协议、一个存储、一个校验器。每个科研插件说同一种证据语言，任何人 30 秒内可复算它声称的结论。*
 
+[English](README.md) · [Español](README-es.md) · [Português](README-pt.md) · [हिन्दी](README-hi.md)
+
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%5E22.19%20%7C%7C%20%3E%3D24.9-brightgreen.svg)]()
+[![DSH plugin](https://img.shields.io/badge/dsh--plugin-✅-green)](https://github.com/topics/dsh-plugin)
 
-[English](README.md) · 简体中文
+</div>
 
 ---
 
@@ -26,6 +36,14 @@
                      ├── objects/<sha256>            不可变字节
                      └── manifest 密封               canonical JSON 的 sha256
 ```
+
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dsh-research-core-flow-v5-dark.svg">
+  <img src="docs/assets/dsh-research-core-flow-v5-light.svg" width="100%" alt="dsh-research-core 结构图：字节变成 SHA-256 内容寻址的快照，Evidence 绑定 source、snapshot 与 anchor，Claim 被求值成检查与 verdict，密封 manifest 再由独立的 dsh-rep-verify CLI 重新校验；图内标签就是真实的实体名、方法名与 CLI 名">
+</picture>
+
+*结构：捕获 → 绑定 → 判定；密封 manifest 与独立的 `dsh-rep-verify` 报告是两条输出，两份产物里的每个哈希都能从字节重算出来。图内只有实体名、方法名与 CLI 名，五语共用同一张结构图。*
 
 ## 它不做什么
 
@@ -85,6 +103,46 @@ dsh plugin --profile <name> remove @perrylink/dsh-research-core       # 卸载
 
 所有 REP 哈希都基于 canonical JSON：键按 UTF-16 code unit 排序、数字用 ECMAScript 序列化、无多余空白、`undefined` 属性省略；拒绝非有限数、bigint、循环引用、孤立代理项。对合法 JSON 值，行为与 RFC 8785（JCS）一致。
 
+## 快速上手（作为库）
+
+```ts
+import {
+  buildManifest, sealManifest, validateRep, verifyManifestSeal,
+  snapshotIdOf, canonicalJson, toSarif, renderRecordMarkdown,
+} from '@perrylink/dsh-research-core'
+
+const snapshot = {
+  snapshotId: snapshotIdOf(bytes),
+  mediaType: 'text/plain' as const,
+  bytes: bytes.byteLength,
+  path: `objects/${snapshotIdOf(bytes).slice('sha256:'.length)}`,
+  capturedAt: '2026-01-15T10:00:00.000Z',
+  sourceRef: { kind: 'file' as const, id: 'paper.txt', retrievedAt: '2026-01-15T10:00:00.000Z' },
+}
+// …build evidence/claims, then:
+const result = validateRep(record)            // invariants, cross-refs, audit chain, seal
+const sarif = toSarif(record, { version: '1.0.0' })
+const markdown = renderRecordMarkdown(record)
+```
+
+## 快速上手（作为服务）
+
+```ts
+// inside a research plugin that optionally injects researchEvidence
+const service = ctx.get('researchEvidence') as ResearchEvidenceService | undefined
+if (service !== undefined) {
+  const { snapshot } = await service.capture({
+    bytes: pdfBytes, mediaType: 'application/pdf',
+    sourceRef: { kind: 'file', id: 'paper.pdf', retrievedAt: new Date().toISOString() },
+  })
+  await service.addEvidence({ sourceRef, snapshotIds: [snapshot.snapshotId], anchors, provenance })
+  await service.addClaim({ text, type: 'result', evidenceRefs: [evidenceId], locator })
+  const claim = await service.verifyClaim(claimId)       // records the verdict
+  const sealed = await service.seal({ title, topic, generator })
+  await service.verifyRecord(sealed.record)              // independent re-check
+}
+```
+
 ## CLI —— 独立校验
 
 ```sh
@@ -125,6 +183,22 @@ RESULT     verified
 
 非法值在挂载期**响亮失败**。
 
+## 存储布局
+
+```
+.research-rep/
+├── objects/<sha256>          immutable snapshot bytes (atomic write, never overwritten)
+├── snapshots.jsonl           snapshot registrations (first registration wins per address)
+├── evidence.jsonl            evidence registrations
+├── evidence-checks.jsonl     evidence checks (latest line wins)
+├── claims.jsonl              claim registrations (immutable)
+├── verdicts.jsonl            verdicts + their checks (latest line wins)
+├── audits.jsonl              append-only hash-chained audit events
+└── records/<id>.rep.json     sealed REP records
+```
+
+每个日志都是只追加的。损坏的日志行会带文件名和行号直接报错，而不是被跳过。读取时会重算 snapshot 对象的哈希，因此篡改会被发现，而不是被信任。
+
 ## 权限与数据
 
 - **本地优先**：本包不发起任何网络请求，不上传任何内容。
@@ -150,6 +224,11 @@ RESULT     verified
 - **Schema 与不变量分层**：`validateRep` 校验交叉引用与不变量（外加防御性结构预检），JSON Schema 是形状权威。零依赖存储只强制交叉引用与不变量，不覆盖每一条 JSON Schema 约束（例如长度上限）；不可信的生产方应在边界用 `schema/rep-v1.schema.json` 做校验。CI 用 20 个 golden fixture 双向对齐。
 
 ## 评测
+
+![dsh-research-core：dsh-rep-verify 的真实运行 —— seal recomputed OK、1 个快照重算通过、1/1 引文回定位、RESULT verified；随后一份密封后被改动的记录报告 seal MISMATCH 与 RESULT FAILED](docs/assets/dsh-research-core-demo.gif)
+
+*动图是 2026-11-21 真实运行的 `dsh-rep-verify` 输出 —— 先用由该记录自身快照生成的 `objects/` 目录校验 `test/fixtures/valid-sealed.rep.json`（重算密封、重算字节哈希、回定位被引用锚点）；再校验 `test/fixtures/invalid-manifest-seal.rep.json`，也就是同一份记录在密封后被改了标题，校验器直接拒绝。退出码：0 通过、1 失败、2 用法/IO 错误。*
+
 
 本包**没有也不声称** precision/recall —— 它是协议基础设施，不是检测器。已量测的是：
 
