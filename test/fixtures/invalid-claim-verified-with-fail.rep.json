@@ -4,7 +4,7 @@
   "createdAt": "2026-01-15T10:00:00.000Z",
   "generator": {
     "name": "dsh-research-core fixture builder",
-    "version": "0.1.4"
+    "version": "0.1.6"
   },
   "snapshots": [
     {
@@ -59,7 +59,7 @@
       ],
       "provenance": {
         "plugin": "dsh-research-core",
-        "version": "0.1.4",
+        "version": "0.1.6",
         "method": "fixture build (text/plain snapshot of a synthetic article)",
         "retrievedAt": "2026-01-15T10:00:00.000Z"
       },
@@ -359,7 +359,7 @@
     "topic": "fixture-sealed",
     "generator": {
       "name": "dsh-research-core fixture builder",
-      "version": "0.1.4"
+      "version": "0.1.6"
     },
     "recordFile": "rec-fixture-sealed.rep.json",
     "evidence": [
@@ -422,7 +422,7 @@
     },
     "integrity": {
       "algorithm": "sha256",
-      "manifestHash": "cd7ed18c57d41519975bd644d438ba2fefdb3f60a98c49c2ebe5ea59431872ee",
+      "manifestHash": "722868a4fc6c89026e7847dfaa282fc8c6e2027286999745116ac87c8c427880",
       "sealedAt": "2026-01-15T10:00:00.000Z"
     }
   }
