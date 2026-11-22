@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-11-22
+
+### Changed
+
+- Marketplace display metadata: icon, localized title/description, author.
+
 ## [0.1.4] - 2026-11-22
 
 

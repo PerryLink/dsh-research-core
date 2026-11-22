@@ -1,6 +1,6 @@
 {
   "name": "@perrylink/dsh-research-core",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "REP v1 — the shared Research Evidence Protocol for DeepSeek Harness research plugins: JSON Schema + TypeScript types for sources, snapshots, anchors, evidence, claims, checks, artifacts, audit events and sealed report manifests, plus a zero-dependency content-addressed evidence store, canonical hashing, SARIF export and an independent verifier CLI. No retrieval, no checks — the protocol and the store only.",
   "author": "PerryLink contributors",
   "repository": {
@@ -24,7 +24,8 @@
       "default": "./lib/index.js"
     },
     "./schema/rep-v1.schema.json": "./schema/rep-v1.schema.json",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json"
   },
   "files": [
     "lib",
@@ -37,7 +38,9 @@
     "LICENSE",
     "SECURITY.md",
     "docs/assets/*",
-    "THIRD_PARTY_NOTICES.md"
+    "THIRD_PARTY_NOTICES.md",
+    "locale/*.json",
+    "icon.svg"
   ],
   "sideEffects": false,
   "dsh": {
@@ -88,5 +91,6 @@
   "license": "Apache-2.0",
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "icon": "icon.svg"
 }
