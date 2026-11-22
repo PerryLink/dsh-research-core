@@ -4,7 +4,7 @@
   "createdAt": "2026-01-15T10:00:00.000Z",
   "generator": {
     "name": "dsh-research-core fixture builder",
-    "version": "0.1.2"
+    "version": "0.1.3"
   },
   "snapshots": [
     {
@@ -48,7 +48,7 @@
       ],
       "provenance": {
         "plugin": "dsh-research-core",
-        "version": "0.1.2",
+        "version": "0.1.3",
         "method": "fixture build (recorded empty Crossref response)",
         "retrievedAt": "2026-01-15T10:00:00.000Z"
       },
@@ -105,7 +105,7 @@
     "topic": "fixture-not-found",
     "generator": {
       "name": "dsh-research-core fixture builder",
-      "version": "0.1.2"
+      "version": "0.1.3"
     },
     "recordFile": "rec-fixture-not-found.rep.json",
     "evidence": [
@@ -143,7 +143,7 @@
     },
     "integrity": {
       "algorithm": "sha256",
-      "manifestHash": "9c7e253e3ccb8067a57ad3383ee11279a9166aebe47742ddef921da0947de093",
+      "manifestHash": "2ffaafa2da0dfc39c76293f6320370e22aac6878f2b53f0577c55a31b2acebd4",
       "sealedAt": "2026-01-15T10:00:00.000Z"
     }
   }

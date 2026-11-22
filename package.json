@@ -1,6 +1,6 @@
 {
   "name": "@perrylink/dsh-research-core",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "REP v1 — the shared Research Evidence Protocol for DeepSeek Harness research plugins: JSON Schema + TypeScript types for sources, snapshots, anchors, evidence, claims, checks, artifacts, audit events and sealed report manifests, plus a zero-dependency content-addressed evidence store, canonical hashing, SARIF export and an independent verifier CLI. No retrieval, no checks — the protocol and the store only.",
   "author": "PerryLink contributors",
   "repository": {
