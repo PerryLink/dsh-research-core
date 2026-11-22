@@ -37,7 +37,6 @@ plugin output ──► REP record (.rep.json) ──► dsh-rep-verify ──�
                         └── manifest seal               (sha256 of canonical JSON)
 ```
 
-
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dsh-research-core-flow-v5-dark.svg">
   <img src="docs/assets/dsh-research-core-flow-v5-light.svg" width="100%" alt="dsh-research-core estrutura: bytes viram um snapshot endereçado por SHA-256, a evidência liga fontes, snapshots e âncoras, uma afirmação é avaliada em verificações e um veredicto, e um manifest selado é então reconferido pela CLI independente dsh-rep-verify; os rótulos do diagrama são os nomes reais de entidades, métodos e da CLI">
@@ -56,7 +55,7 @@ plugin output ──► REP record (.rep.json) ──► dsh-rep-verify ──�
 
 | | |
 |---|---|
-| DeepSeek Harness | **`dsh-v0.2.2-rc.4`** (verificado nesta máquina, 2026-11-18) — linha peer do npm `>=0.2.1-0 <0.3.0 \|\| >=0.2.2-0 <0.3.0` |
+| DeepSeek Harness | **`dsh-v0.2.3-alpha.1`** (verificado nesta máquina, 2026-11-22) — linha peer do npm `>=0.2.1-0 <0.3.0 \|\| >=0.2.2-0 <0.3.0` |
 | Node | `^22.19.0 \|\| >=24.9.0` (testado em `24.22.1`), somente ESM |
 | Peers | `@deepseek-ai/cordis ^4.0.5-alpha.1`, `@deepseek-ai/schemastery ^3.18.5-alpha.1` |
 | Dependências em tempo de execução | **zero** |
@@ -246,7 +245,6 @@ Cada diário é somente-adição. Uma linha corrompida falha ruidosamente com ar
 ![dsh-research-core: uma execução real do dsh-rep-verify — selo recomposto OK, 1 snapshot re-hasheado, 1/1 citações relocalizadas, RESULT verified; depois um registro editado após a selagem informa seal MISMATCH e RESULT FAILED](docs/assets/dsh-research-core-demo.gif)
 
 *Animado: a saída real do `dsh-rep-verify` em 2026-11-21 — primeiro `test/fixtures/valid-sealed.rep.json` verificado contra um diretório `objects/` construído a partir do seu próprio snapshot (o selo é recomposto, os bytes re-hasheados e a âncora citada relocalizada); depois `test/fixtures/invalid-manifest-seal.rep.json`, o mesmo registro com o título editado após a selagem, que o verificador recusa. Códigos de saída: 0 verificado, 1 falhou, 2 uso/IO.*
-
 
 Este pacote **não tem nem reivindica números de precision/recall**: é infraestrutura de protocolo, não um detector. O que é medido:
 

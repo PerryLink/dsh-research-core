@@ -37,7 +37,6 @@ plugin output ──► REP record (.rep.json) ──► dsh-rep-verify ──�
                         └── manifest seal               (sha256 of canonical JSON)
 ```
 
-
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dsh-research-core-flow-v5-dark.svg">
   <img src="docs/assets/dsh-research-core-flow-v5-light.svg" width="100%" alt="dsh-research-core संरचना: बाइट्स SHA-256 एड्रेस्ड snapshot बनते हैं, एविडेंस स्रोत, snapshot और एंकर बाँधता है, एक दावा जाँचों और वर्डिक्ट में मूल्यांकित होता है, और सीलबंद manifest को फिर स्वतंत्र dsh-rep-verify CLI जाँचती है; आरेख के लेबल असली एंटिटी, मेथड और CLI नाम हैं">
@@ -56,7 +55,7 @@ plugin output ──► REP record (.rep.json) ──► dsh-rep-verify ──�
 
 | | |
 |---|---|
-| DeepSeek Harness | **`dsh-v0.2.2-rc.4`** (इस मशीन पर सत्यापित, 2026-11-18) — npm peer लाइन `>=0.2.1-0 <0.3.0 \|\| >=0.2.2-0 <0.3.0` |
+| DeepSeek Harness | **`dsh-v0.2.3-alpha.1`** (इस मशीन पर सत्यापित, 2026-11-22) — npm peer लाइन `>=0.2.1-0 <0.3.0 \|\| >=0.2.2-0 <0.3.0` |
 | Node | `^22.19.0 \|\| >=24.9.0` (`24.22.1` पर परीक्षित), केवल ESM |
 | Peers | `@deepseek-ai/cordis ^4.0.5-alpha.1`, `@deepseek-ai/schemastery ^3.18.5-alpha.1` |
 | रनटाइम निर्भरताएँ | **शून्य** |
@@ -246,7 +245,6 @@ RESULT     verified
 ![dsh-research-core: dsh-rep-verify का असली रन — सील फिर से गणना में OK, 1 snapshot फिर से हैश, 1/1 उद्धरण पुनःस्थापित, RESULT verified; फिर सील के बाद संपादित एक रिकॉर्ड seal MISMATCH और RESULT FAILED बताता है](docs/assets/dsh-research-core-demo.gif)
 
 *एनिमेटेड: 2026-11-21 को `dsh-rep-verify` का असली आउटपुट — पहले `test/fixtures/valid-sealed.rep.json` अपने ही snapshot से बनी `objects/` डायरेक्टरी के विरुद्ध सत्यापित (सील फिर से गणना, बाइट्स फिर से हैश, उद्धृत एंकर पुनःस्थापित); फिर `test/fixtures/invalid-manifest-seal.rep.json`, यानी वही रिकॉर्ड जिसका शीर्षक सील के बाद बदला गया, जिसे वेरिफ़ायर अस्वीकार करता है। एग्ज़िट कोड: 0 सत्यापित, 1 विफल, 2 उपयोग/IO।*
-
 
 इस पैकेज के **precision/recall के आँकड़े न हैं और न यह उनका दावा करता है**: यह प्रोटोकॉल इंफ़्रास्ट्रक्चर है, डिटेक्टर नहीं। जो मापा जाता है:
 

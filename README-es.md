@@ -37,7 +37,6 @@ plugin output ──► REP record (.rep.json) ──► dsh-rep-verify ──�
                         └── manifest seal               (sha256 of canonical JSON)
 ```
 
-
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dsh-research-core-flow-v5-dark.svg">
   <img src="docs/assets/dsh-research-core-flow-v5-light.svg" width="100%" alt="dsh-research-core estructura: los bytes se convierten en un snapshot direccionado por SHA-256, la evidencia enlaza fuentes, snapshots y anclas, una afirmación se evalúa en comprobaciones y un veredicto, y un manifest sellado se vuelve a comprobar con la CLI independiente dsh-rep-verify; las etiquetas del diagrama son los nombres reales de entidades, métodos y de la CLI">
@@ -56,7 +55,7 @@ plugin output ──► REP record (.rep.json) ──► dsh-rep-verify ──�
 
 | | |
 |---|---|
-| DeepSeek Harness | **`dsh-v0.2.2-rc.4`** (verificado en esta máquina, 2026-11-18) — línea peer de npm `>=0.2.1-0 <0.3.0 \|\| >=0.2.2-0 <0.3.0` |
+| DeepSeek Harness | **`dsh-v0.2.3-alpha.1`** (verificado en esta máquina, 2026-11-22) — línea peer de npm `>=0.2.1-0 <0.3.0 \|\| >=0.2.2-0 <0.3.0` |
 | Node | `^22.19.0 \|\| >=24.9.0` (probado en `24.22.1`), solo ESM |
 | Peers | `@deepseek-ai/cordis ^4.0.5-alpha.1`, `@deepseek-ai/schemastery ^3.18.5-alpha.1` |
 | Dependencias en tiempo de ejecución | **cero** |
@@ -246,7 +245,6 @@ Cada diario es de solo adición. Una línea corrupta falla de forma ruidosa con 
 ![dsh-research-core: una ejecución real de dsh-rep-verify — sello recompuesto OK, 1 snapshot rehasheado, 1/1 citas reubicadas, RESULT verified; después un registro editado tras el sellado informa seal MISMATCH y RESULT FAILED](docs/assets/dsh-research-core-demo.gif)
 
 *Animado: la salida real de `dsh-rep-verify` el 2026-11-21 — primero `test/fixtures/valid-sealed.rep.json` verificado contra un directorio `objects/` construido a partir de su propio snapshot (el sello se recompone, los bytes se rehashean y el ancla citada se reubica); después `test/fixtures/invalid-manifest-seal.rep.json`, el mismo registro con su título editado tras el sellado, que el verificador rechaza. Códigos de salida: 0 verificado, 1 fallido, 2 uso/IO.*
-
 
 Este paquete **no tiene ni reclama cifras de precision/recall**: es infraestructura de protocolo, no un detector. Lo que se mide:
 

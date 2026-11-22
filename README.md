@@ -37,7 +37,6 @@ plugin output ──► REP record (.rep.json) ──► dsh-rep-verify ──�
                         └── manifest seal               (sha256 of canonical JSON)
 ```
 
-
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dsh-research-core-flow-v5-dark.svg">
   <img src="docs/assets/dsh-research-core-flow-v5-light.svg" width="100%" alt="dsh-research-core structure: bytes become a SHA-256 addressed snapshot, evidence binds sources, snapshots and anchors, a claim is evaluated into checks and a verdict, and a sealed manifest is then re-checked by the independent dsh-rep-verify CLI; the labels inside the diagram are the real entity, method and CLI names">
@@ -56,7 +55,7 @@ plugin output ──► REP record (.rep.json) ──► dsh-rep-verify ──�
 
 | | |
 |---|---|
-| DeepSeek Harness | **`dsh-v0.2.2-rc.4`** (verified on this machine, 2026-11-18) — npm peer line `>=0.2.1-0 <0.3.0 \|\| >=0.2.2-0 <0.3.0` |
+| DeepSeek Harness | **`dsh-v0.2.3-alpha.1`** (verified on this machine, 2026-11-22) — npm peer line `>=0.2.1-0 <0.3.0 \|\| >=0.2.2-0 <0.3.0` |
 | Node | `^22.19.0 \|\| >=24.9.0` (tested on `24.22.1`), ESM only |
 | Peers | `@deepseek-ai/cordis ^4.0.5-alpha.1`, `@deepseek-ai/schemastery ^3.18.5-alpha.1` |
 | Runtime dependencies | **zero** |
@@ -246,7 +245,6 @@ Every journal is append-only. A corrupt journal line fails loud with file and li
 ![dsh-research-core: a real dsh-rep-verify run — seal recomputed OK, 1 snapshot re-hashed, 1/1 quotes re-located, RESULT verified; then a record edited after sealing reports seal MISMATCH and RESULT FAILED](docs/assets/dsh-research-core-demo.gif)
 
 *Animated: the real `dsh-rep-verify` output on 2026-11-21 — first `test/fixtures/valid-sealed.rep.json` verified against an `objects/` directory built from its own snapshot (the seal is recomputed, the bytes re-hashed, the quoted anchor re-located); then `test/fixtures/invalid-manifest-seal.rep.json`, the same record with its title edited after sealing, which the verifier refuses. Exit codes: 0 verified, 1 failed, 2 usage/IO.*
-
 
 There are **no precision/recall numbers for this package** and it does not claim any: it is protocol infrastructure, not a detector. What is measured:
 

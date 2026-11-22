@@ -37,7 +37,6 @@
                      └── manifest 密封               canonical JSON 的 sha256
 ```
 
-
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dsh-research-core-flow-v5-dark.svg">
   <img src="docs/assets/dsh-research-core-flow-v5-light.svg" width="100%" alt="dsh-research-core 结构图：字节变成 SHA-256 内容寻址的快照，Evidence 绑定 source、snapshot 与 anchor，Claim 被求值成检查与 verdict，密封 manifest 再由独立的 dsh-rep-verify CLI 重新校验；图内标签就是真实的实体名、方法名与 CLI 名">
@@ -56,7 +55,7 @@
 
 | 项 | 值 |
 |---|---|
-| DeepSeek Harness | **`dsh-v0.2.2-rc.4`**（本机实测，2026-11-18）；npm peer 区间 `>=0.2.1-0 <0.3.0 \|\| >=0.2.2-0 <0.3.0` |
+| DeepSeek Harness | **`dsh-v0.2.3-alpha.1`**（本机实测，2026-11-22）；npm peer 区间 `>=0.2.1-0 <0.3.0 \|\| >=0.2.2-0 <0.3.0` |
 | Node | `^22.19.0 \|\| >=24.9.0`（实测 `24.22.1`），仅 ESM |
 | Peer | `@deepseek-ai/cordis ^4.0.5-alpha.1`、`@deepseek-ai/schemastery ^3.18.5-alpha.1` |
 | 运行时依赖 | **零** |
@@ -228,7 +227,6 @@ RESULT     verified
 ![dsh-research-core：dsh-rep-verify 的真实运行 —— seal recomputed OK、1 个快照重算通过、1/1 引文回定位、RESULT verified；随后一份密封后被改动的记录报告 seal MISMATCH 与 RESULT FAILED](docs/assets/dsh-research-core-demo.gif)
 
 *动图是 2026-11-21 真实运行的 `dsh-rep-verify` 输出 —— 先用由该记录自身快照生成的 `objects/` 目录校验 `test/fixtures/valid-sealed.rep.json`（重算密封、重算字节哈希、回定位被引用锚点）；再校验 `test/fixtures/invalid-manifest-seal.rep.json`，也就是同一份记录在密封后被改了标题，校验器直接拒绝。退出码：0 通过、1 失败、2 用法/IO 错误。*
-
 
 本包**没有也不声称** precision/recall —— 它是协议基础设施，不是检测器。已量测的是：
 
